@@ -118,4 +118,10 @@ bool initialize_window(void)
 	SDL_SetWindowFullscreen(window, SDL_SetWindowFullscreen);
 	return true;
 }
+void draw_pixel(int x, int y, uint32_t color)
+{	
+	if(x > 0 && x < window_width && y > 0 && y < window_height)
+		colorbuffer[(window_width * y) + x] = color;
+}
+
 #pragma endregion

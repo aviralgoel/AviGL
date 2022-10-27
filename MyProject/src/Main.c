@@ -51,14 +51,16 @@ void update(void)
 void render(void)
 {	
 	// just a method to draw grid
-	draw_grid(20, 20, 0xFFFFFFFF);
+	//draw_grid(20, 20, 0xFFFFFFFF);
 	// just a method to draw a rect
-	draw_rect(200, 250, 500, 450, 0xFFFF0000);
+	//draw_rect(200, 250, 500, 450, 0xFFFF0000);
+	// just a method to draw a single pixel
+	//draw_pixel(100, 30, 0xFFFFFF00);
 
 	// converting colorbuffer to SDL's texture needs
 	render_color_buffer();
 	// clean the colorbuffer for next frame
-	clear_color_buffer(0xFF88FF99);
+	clear_color_buffer(0xFF223344);
 	// like the final draw call	/* Up until now everything was drawn behind the scenes.
 	// This will show the new, red contents of the window
 	SDL_RenderPresent(renderer);
