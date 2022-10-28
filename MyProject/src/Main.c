@@ -88,10 +88,10 @@ void render(void) {
     for (int i = 0; i < N_POINTS; i++) {
         vec2_t projected_point = projected_points[i];
         draw_rect(
-            projected_point.x ,
-            projected_point.y ,
-            20,
-            20,
+            projected_point.x + (window_width / 2),
+            projected_point.y + (window_height / 2),
+            4,
+            4,
             0xFFFFFF00
         );
     }
