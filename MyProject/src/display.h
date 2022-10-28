@@ -1,22 +1,23 @@
-#pragma once
-#include<stdbool.h>
-#include<stdint.h>
-#include<SDL.h>
-#include <stdio.h>
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
-#pragma region global variables
-extern int window_width;
-extern int window_height;
+#include <stdint.h>
+#include <stdbool.h>
+#include <SDL.h>
+
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;
-extern uint32_t* colorbuffer;;
+extern uint32_t* color_buffer;
 extern SDL_Texture* color_buffer_texture;
-#pragma endregion
+extern int window_width;
+extern int window_height;
 
-bool initialize_window(void);
-void draw_grid(int columnGap, int rowGap, uint32_t gridColor);
-void draw_rect(int x0, int y0, int width, int height, uint32_t fillColor);
+bool initialize_window(void); 
+void draw_grid(void);
 void draw_pixel(int x, int y, uint32_t color);
+void draw_rect(int x, int y, int width, int height, uint32_t color);
+void render_color_buffer(void); 
 void clear_color_buffer(uint32_t color);
-void render_color_buffer(void);
 void destroy_window(void);
+
+#endif

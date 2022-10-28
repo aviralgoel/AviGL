@@ -21,9 +21,11 @@
   <ItemGroup>
     <ClCompile Include="src\display.c" />
     <ClCompile Include="src\Main.c" />
+    <ClCompile Include="src\vector.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\display.h" />
+    <ClInclude Include="src\vector.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
