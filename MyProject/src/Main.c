@@ -12,6 +12,8 @@
 vec3_t cube_points[N_POINTS]; // 9x9x9 cube
 vec2_t projected_points[N_POINTS];
 vec3_t camera_position = {.x = 0, .y= 0, .z=-5};
+vec3_t cube_rotation = { .x = 0, .y = 0, .z = 0 };
+
 float scale_factor = 512; // how far apart should the points be
 #define YELLOW (0xFFFFFF00)
 #define PINK (0xFFFFC0CB)
@@ -89,10 +91,17 @@ void process_input(void) {
  */
 void update(void) {
 	
+	cube_rotation.x += 0.01;
+	cube_rotation.y += 0.005;
+	cube_rotation.z += 0.0025;
+
 	// orthographic projection of 3D cube points
 	for (int i = 0; i < N_POINTS; i++) {
-		vec3_t point = cube_points[i];
-		point.z -= camera_position.z;
+		vec3_t point = cube_points[i]; // get original coordinates of the point of the cube
+		point = vec3_rotate_x(point, cube_rotation.x); // rotate them each time a little more
+		point = vec3_rotate_y(point, cube_rotation.y); // rotate them each time a little more
+		point = vec3_rotate_z(point, cube_rotation.z); // rotate them each time a little more
+		point.z -= camera_position.z; // push the point a little back in screen
 		// Project the current point
 		//vec2_t projected_point = ortho_Project(point);
 		vec2_t projected_point = perspective_Project(point);
