@@ -77,6 +77,26 @@ void render_color_buffer(void) {
     SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
 }
 
+void draw_line(int x0, int y0, int x1, int y1)
+{
+    float delta_x = x1 - x0;
+    float delta_y = y1 - y0;
+    
+    int side_length = (abs(delta_x)>=abs(delta_y)) ? abs(delta_x):abs(delta_y);
+
+    float x_inc = delta_x / (float) side_length;
+    float y_inc = delta_y / (float)side_length;
+
+    float current_x = x0;
+    float current_y = y0;
+    for (int i = 0; i < side_length; i++)
+    {
+        draw_pixel(round(current_x), round(current_y), BLUE);
+        current_x += x_inc;
+        current_y += y_inc;
+    }
+}
+
 void clear_color_buffer(uint32_t color) {
     for (int y = 0; y < window_height; y++) {
         for (int x = 0; x < window_width; x++) {
