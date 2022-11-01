@@ -1,5 +1,4 @@
 #include "display.h"
-#include <stdio.h>
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -59,9 +58,11 @@ void draw_pixel(int x, int y, uint32_t color) {
 }
 
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
-    for (int i = x; i < x+width; i++) {
-        for (int j = y; j < y+height; j++) {
-            draw_pixel(i, j, color);
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            int current_x = x + i;
+            int current_y = y + j;
+            draw_pixel(current_x, current_y, color);
         }
     }
 }
