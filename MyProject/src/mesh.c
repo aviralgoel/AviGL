@@ -1,5 +1,7 @@
 #include "mesh.h"
 
+// coordinates of vertex in the world space
+// every vertex is currently a vec3
 vec3_t mesh_vertices[N_MESH_VERTICES] = {
     { .x = -1, .y = -1, .z = -1 }, // 1
     { .x = -1, .y =  1, .z = -1 }, // 2
@@ -11,6 +13,8 @@ vec3_t mesh_vertices[N_MESH_VERTICES] = {
     { .x = -1, .y = -1, .z =  1 }  // 8
 };
 
+// index array of triangular mesh faces
+// every face is a 3 float struct
 face_t mesh_faces[N_MESH_FACES] = {
     // front
     { .a = 1, .b = 2, .c = 3 },

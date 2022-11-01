@@ -1,11 +1,13 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
+#include <stdio.h>
 
-#define FPS 60 
+// have 30 frames every second
+#define FPS 10
+// time in millisecond taken by each frame
 #define FRAME_TARGET_TIME (1000 / FPS)
 
 extern SDL_Window* window;
@@ -22,5 +24,3 @@ void draw_rect(int x, int y, int width, int height, uint32_t color);
 void render_color_buffer(void); 
 void clear_color_buffer(uint32_t color);
 void destroy_window(void);
-
-#endif

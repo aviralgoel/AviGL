@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "display.h"
 #include "vector.h"
 #include "mesh.h"
 
+#define YELLOW (0xFFFFFF00)
+#define BLUE (0xFF0000FF)
 triangle_t triangles_to_render[N_MESH_FACES];
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
+vec3_t camera_position = { .x = 0, .y = 0, .z = -7 };
 vec3_t cube_rotation = { .x = 0, .y = 0, .z = 0 };
 
 float fov_factor = 640;
@@ -57,14 +59,14 @@ vec2_t project(vec3_t point) {
 }
 
 void update(void) {
-    // Wait some time until the reach the target frame time in milliseconds
-    int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+    
+	// Returns an unsigned 32-bit value representing the number of milliseconds since the SDL library initialized.
+	int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
 
-    // Only delay execution if we are running too fast
-    if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
-        SDL_Delay(time_to_wait);
-    }
-
+	// Only delay execution if we are running too fast
+	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+		SDL_Delay(time_to_wait);
+	}
     previous_frame_time = SDL_GetTicks();
 
     cube_rotation.x += 0.01;
@@ -73,21 +75,25 @@ void update(void) {
 
     // Loop all triangle faces of our mesh
     for (int i = 0; i < N_MESH_FACES; i++) {
+        // for a cube there are 6 sides = 6*2 triangular faces
         face_t mesh_face = mesh_faces[i];
-
+        // for each face, fetch its three corresponding vertices (vec3)
         vec3_t face_vertices[3];
         face_vertices[0] = mesh_vertices[mesh_face.a - 1];
         face_vertices[1] = mesh_vertices[mesh_face.b - 1];
         face_vertices[2] = mesh_vertices[mesh_face.c - 1];
 
-        triangle_t projected_triangle;
+        // transform and project all the above 3 vertices
+		// an empty triangle
+		triangle_t projected_triangle;
 
         // Loop all three vertices of this current face and apply transformations
         for (int j = 0; j < 3; j++) {
             vec3_t transformed_vertex = face_vertices[j];
 
-            transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x);
-            transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y);
+            // transform
+           // transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x);
+            //transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y);
             transformed_vertex = vec3_rotate_z(transformed_vertex, cube_rotation.z);
 
             // Translate the vertex away from the camera
@@ -96,13 +102,15 @@ void update(void) {
             // Project the current vertex
             vec2_t projected_point = project(transformed_vertex);
 
-            // Scale and translate the projected points to the middle of the screen
+            // translate the projected points to the middle of the screen
             projected_point.x += (window_width / 2);
             projected_point.y += (window_height / 2);
 
+
             projected_triangle.points[j] = projected_point;
         }
-
+		// in an array of projected triangles, where each triangle has 3 points,
+        // save those 3 points all at once
         // Save the projected triangle in the array of triangles to render
         triangles_to_render[i] = projected_triangle;
     }
@@ -114,9 +122,9 @@ void render(void) {
     // Loop all projected triangles and render them
     for (int i = 0; i < N_MESH_FACES; i++) {
         triangle_t triangle = triangles_to_render[i];
-        draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFFFF00);
-        draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFFFF00);
-        draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFFFF00);
+        draw_rect(triangle.points[0].x, triangle.points[0].y, 9, 9, BLUE);
+        draw_rect(triangle.points[1].x, triangle.points[1].y, 9, 9, BLUE);
+        draw_rect(triangle.points[2].x, triangle.points[2].y, 9, 9, BLUE);
     }
 
     render_color_buffer();
