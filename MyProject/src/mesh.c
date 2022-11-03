@@ -1,5 +1,8 @@
 #include "mesh.h"
+#include "array.h"
+#include <stdio.h>
 
+mesh_t mesh = { .vertices = NULL, .faces = NULL, .rotation = {0,0,0} };
 // coordinates of vertex in the world space
 // every vertex is currently a vec3
 vec3_t cube_vertices[N_CUBE_VERTICES] = {
@@ -35,3 +38,17 @@ face_t cube_faces[N_CUBE_FACES] = {
     { .a = 6, .b = 8, .c = 1 },
     { .a = 6, .b = 1, .c = 4 }
 };
+
+void load_cube_mesh_data(void)
+{
+  for(int i = 0 ; i < N_CUBE_VERTICES ; i++)
+  {
+      vec3_t cube_vertex = cube_vertices[i];
+      array_push(mesh.vertices, cube_vertex);
+  }
+  for (int i = 0; i < N_CUBE_FACES; i++)
+  {
+	  face_t cube_face = cube_faces[i];
+	  array_push(mesh.faces, cube_face);
+  }
+}
