@@ -1,12 +1,16 @@
+#pragma region header files
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <SDL.h>
+#include "array.h"
 #include "display.h"
 #include "vector.h"
 #include "mesh.h"
+#pragma endregion
 
-triangle_t triangles_to_render[N_MESH_FACES];
+// Number of triangles to be rendered = number of faces (since each triangle corresponds to one face)
+triangle_t* triangles_to_render = NULL;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = -7 };
 vec3_t cube_rotation = { .x = 0, .y = 0, .z = 0 };
@@ -57,7 +61,7 @@ vec2_t project(vec3_t point) {
 }
 
 void update(void) {
-    
+    triangles_to_render = NULL;
 	// Returns an unsigned 32-bit value representing the number of milliseconds since the SDL library initialized.
 	int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
 
@@ -72,8 +76,9 @@ void update(void) {
     cube_rotation.z += 0.01;
 
     // Loop all triangle faces of our mesh
+    // for a cube there are 6 sides = 6*2 triangular faces
     for (int i = 0; i < N_MESH_FACES; i++) {
-        // for a cube there are 6 sides = 6*2 triangular faces
+        
         face_t mesh_face = mesh_faces[i];
         // for each face, fetch its three corresponding vertices (vec3)
         vec3_t face_vertices[3];
@@ -106,19 +111,21 @@ void update(void) {
 
 
             projected_triangle.points[j] = projected_point;
+            // At this point, we know WHERE on the screen A vertex of a triangle should be painted
         }
 		// in an array of projected triangles, where each triangle has 3 points,
-        // save those 3 points all at once
+        // save those 3 points (ready to be painted) all at once, 
         // Save the projected triangle in the array of triangles to render
-        triangles_to_render[i] = projected_triangle;
+        //triangles_to_render[i] = projected_triangle;
+        array_push(triangles_to_render, projected_triangle);
     }
 }
 
 void render(void) {
     draw_grid();
-
+    int numOfTriangles =  array_length(triangles_to_render);
     // Loop all projected triangles and render them
-	for (int i = 0; i < N_MESH_FACES; i++) {
+	for (int i = 0; i < numOfTriangles; i++) {
 		triangle_t triangle = triangles_to_render[i];
 		draw_rect(triangle.points[0].x, triangle.points[0].y, 9, 9, BLUE);
 		draw_rect(triangle.points[1].x, triangle.points[1].y, 9, 9, BLUE);
@@ -130,7 +137,7 @@ void render(void) {
 	//draw_line();
 	//draw_line();
 
-
+    array_free(triangles_to_render);
     render_color_buffer();
 
     clear_color_buffer(0xFF000000);
