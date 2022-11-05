@@ -52,3 +52,47 @@ void load_cube_mesh_data(void)
 	  array_push(mesh.faces, cube_face);
   }
 }
+
+FILE* stream;
+void load_obj_file_data(char* filename) {
+	errno_t err;
+
+	// Open for read (will fail if file "crt_fopen_s.c" doesn't exist)
+	err = fopen_s(&stream, filename, "r");
+	if (err == 0)
+	{
+		printf("The file 'crt_fopen_s.c' was opened\n");
+	}
+	else
+	{
+		printf("The file 'crt_fopen_s.c' was not opened\n");
+	}
+	char line[1024];
+
+	while (fgets(line, 1024, stream)) {
+		// Vertex information
+		if (strncmp(line, "v ", 2) == 0) {
+			vec3_t vertex;
+			sscanf_s(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+			array_push(mesh.vertices, vertex);
+		}
+		// Face information
+		if (strncmp(line, "f ", 2) == 0) {
+			int vertex_indices[3];
+			int texture_indices[3];
+			int normal_indices[3];
+			sscanf_s(
+				line, "f %d/%d/%d %d/%d/%d %d/%d/%d",
+				&vertex_indices[0], &texture_indices[0], &normal_indices[0],
+				&vertex_indices[1], &texture_indices[1], &normal_indices[1],
+				&vertex_indices[2], &texture_indices[2], &normal_indices[2]
+			);
+			face_t face = {
+				.a = vertex_indices[0],
+				.b = vertex_indices[1],
+				.c = vertex_indices[2]
+			};
+			array_push(mesh.faces, face);
+		}
+	}
+}

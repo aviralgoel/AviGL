@@ -32,7 +32,8 @@ void setup(void) {
         window_width,
         window_height
     );
-    load_cube_mesh_data();
+    //load_cube_mesh_data();
+    load_obj_file_data("./assets/bunny.obj");
 }
 
 void process_input(void) {
@@ -98,8 +99,8 @@ void update(void) {
 
             // transform
             transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
-            transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-            transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+            //transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
+            //transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
             // Translate the vertex away from the camera
             transformed_vertex.z -= camera_position.z;
@@ -129,9 +130,9 @@ void render(void) {
     // Loop all projected triangles and render them
 	for (int i = 0; i < numOfTriangles; i++) {
 		triangle_t triangle = triangles_to_render[i];
-		draw_rect(triangle.points[0].x, triangle.points[0].y, 9, 9, BLUE);
-		draw_rect(triangle.points[1].x, triangle.points[1].y, 9, 9, BLUE);
-		draw_rect(triangle.points[2].x, triangle.points[2].y, 9, 9, BLUE);
+		//draw_rect(triangle.points[0].x, triangle.points[0].y, 1, 1, BLUE);
+		//draw_rect(triangle.points[1].x, triangle.points[1].y, 1, 1, BLUE);
+		//draw_rect(triangle.points[2].x, triangle.points[2].y, 1, 1, BLUE);
         draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y);
 		draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y);
 		draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y);
@@ -163,7 +164,7 @@ int main(void) {
     setup();
 
     while (is_running) {
-        process_input();
+       process_input();
         update();
         render();
     }
