@@ -77,7 +77,7 @@ void render_color_buffer(void) {
     SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
 }
 
-void draw_line(int x0, int y0, int x1, int y1)
+void draw_line_DDA(int x0, int y0, int x1, int y1)
 {
     float delta_x = x1 - x0;
     float delta_y = y1 - y0;
@@ -95,6 +95,50 @@ void draw_line(int x0, int y0, int x1, int y1)
         current_x += x_inc;
         current_y += y_inc;
     }
+}
+void draw_line_BLA(int x0, int y0, int x1, int y1)
+{   
+
+
+	if (x0 > x1)
+	{
+		swap(x0, x1);
+		swap(y0, y1);
+	}
+
+	int delta_x = x1 - x0;
+	int delta_y = y1 - y0;
+    float m = (float)delta_y / (float)delta_x;
+    if (m < 0) return;
+    if (m > 1 && y0 < y1 && x0 < x1 )
+    {
+		int eps = 0;
+
+		for (int y = y0; y <= y1; y++)
+		{
+			draw_pixel(x0,y, BLUE);
+			eps += delta_x;
+			if ((eps << 1) >= delta_y)
+			{
+				x0++;  eps -= delta_y;
+			}
+
+		}
+    }
+    int y = y0, xStart = x0;
+    int yEnd = y1, xEnd = x1;
+    int eps = 0;
+    for (int x = xStart; x <= xEnd; x++)
+    {
+        draw_pixel(x, y, BLUE);
+        eps += delta_y;
+        if ((eps << 1) >= delta_x)
+        {
+            y++;  eps -= delta_x;
+        }
+			
+    }
+
 }
 
 void clear_color_buffer(uint32_t color) {
