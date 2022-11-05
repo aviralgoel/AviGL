@@ -5,12 +5,6 @@
 #include <SDL.h>
 #include <stdio.h>
 
-#define swap(x,y) do{ \
-unsigned char swap_temp[sizeof(x) == sizeof(y) ? (signed)sizeof(x) : -1]; \
-	   memcpy(swap_temp, &y, sizeof(x)); \
-	   memcpy(&y, &x, sizeof(x)); \
-	   memcpy(&x, swap_temp, sizeof(x)); \
-	} while (0);
 // have 30 frames every second
 #define FPS 10
 // time in millisecond taken by each frame
@@ -29,8 +23,7 @@ bool initialize_window(void);
 void draw_grid(void);
 void draw_pixel(int x, int y, uint32_t color);
 void draw_rect(int x, int y, int width, int height, uint32_t color);
-void draw_line_DDA(int x0, int y0, int x1, int y1);
-void draw_line_BLA(int x0, int y0, int x1, int y1);
+void draw_line(int x0, int y0, int x1, int y1);
 void render_color_buffer(void); 
 void clear_color_buffer(uint32_t color);
 void destroy_window(void);
