@@ -12,10 +12,10 @@
 // Number of triangles to be rendered = number of faces (since each triangle corresponds to one face)
 triangle_t* triangles_to_render = NULL;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -7 };
+vec3_t camera_position = { .x = 0, .y = 0, .z = -10 };
 //vec3_t cube_rotation = { .x = 0, .y = 0, .z = 0 };
 
-float fov_factor = 640;
+float fov_factor = 840;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -33,7 +33,7 @@ void setup(void) {
         window_height
     );
     //load_cube_mesh_data();
-    load_obj_file_data("./assets/bunny.obj");
+    load_obj_file_data("./assets/f22.obj");
 }
 
 void process_input(void) {
@@ -73,9 +73,9 @@ void update(void) {
 	}
     previous_frame_time = SDL_GetTicks();
 
-    mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
-    mesh.rotation.z += 0.01;
+    mesh.rotation.x += 0.03;
+    mesh.rotation.y += 0.03;
+    //mesh.rotation.z += 0.01;
 
     // Loop all triangle faces of our mesh
     // for a cube there are 6 sides = 6*2 triangular faces
@@ -99,7 +99,7 @@ void update(void) {
 
             // transform
             transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
-            //transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
+            transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
             //transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
             // Translate the vertex away from the camera
@@ -109,8 +109,8 @@ void update(void) {
             vec2_t projected_point = project(transformed_vertex);
 
             // translate the projected points to the middle of the screen
-            projected_point.x += (window_width / 2);
-            projected_point.y += (window_height / 2);
+            projected_point.x += (window_width/2);
+            projected_point.y += (window_height/2);
 
 
             projected_triangle.points[j] = projected_point;
