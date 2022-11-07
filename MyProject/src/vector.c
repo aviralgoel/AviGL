@@ -27,3 +27,17 @@ vec3_t vec3_rotate_z(vec3_t v, float angle) {
     };
     return rotated_vector;
 }
+
+#pragma region Vector TWOD Functions
+float vec2_magnitude(vec2_t v)
+{
+    return sqrt(v.x * v.x + v.y * v.y);
+}
+#pragma endregion Vector TWOD Functions
+
+#pragma region Vector THREED Functions
+float vec3_magnitude(vec3_t v)
+{
+	return sqrt(v.x * v.x + v.y * v.y + v.z*v.z);
+}
+#pragma endregion Vector THREED Functions
