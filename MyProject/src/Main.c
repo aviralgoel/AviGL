@@ -84,6 +84,7 @@ void update(void) {
 	int numOfFaces = array_length(mesh.faces);
 	for (int i = 0; i < numOfFaces; i++) {
 
+		// get the face
 		face_t mesh_face = mesh.faces[i];
 		// for each face, fetch its three corresponding vertices (vec3)
 		vec3_t face_vertices[3];
@@ -91,9 +92,7 @@ void update(void) {
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1];
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-		// transform and project all the above 3 vertices
-		// an empty triangle
-		triangle_t projected_triangle;
+		vec3_t transformed_vertices[3];
 
 		// Loop all three vertices of this current face and apply transformations
 		for (int j = 0; j < 3; j++) {
@@ -106,14 +105,20 @@ void update(void) {
 
 			// Translate the vertex away from the camera
 			transformed_vertex.z -= camera_position.z;
-
+			transformed_vertices[j] = transformed_vertex;
+		}
+		// Loop all three vertices of this current face 
+		// and apply perspective divide to the transformed vertices
+		// an empty triangle
+		triangle_t projected_triangle;
+		for (int j = 0; j < 3; j++) {
+			
 			// Project the current vertex
-			vec2_t projected_point = project(transformed_vertex);
+			vec2_t projected_point = project(transformed_vertices[j]);
 
 			// translate the projected points to the middle of the screen
 			projected_point.x += (window_width / 2);
 			projected_point.y += (window_height / 2);
-
 
 			projected_triangle.points[j] = projected_point;
 			// At this point, we know WHERE on the screen A vertex of a triangle should be painted
@@ -126,36 +131,19 @@ void update(void) {
 	}
 }
 
-
-
 void render(void) {
 	draw_grid();
 	int numOfTriangles = array_length(triangles_to_render);
-	// Loop all projected triangles and render them
-	//for (int i = 0; i < numOfTriangles; i++) {
-	//	triangle_t triangle = triangles_to_render[i];
-	//	//draw_rect(triangle.points[0].x, triangle.points[0].y, 1, 1, BLUE);
-	//	//draw_rect(triangle.points[1].x, triangle.points[1].y, 1, 1, BLUE);
-	//	//draw_rect(triangle.points[2].x, triangle.points[2].y, 1, 1, BLUE);
-	//	draw_line_BLA(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y,RED);
-	//	draw_line_BLA(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, BLUE);
-	//	draw_line_BLA(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, YELLOW);
-	//}
-	//for (int i = 0; i < numOfTriangles; i++) {
-	//	triangle_t triangle = triangles_to_render[i];
-	//	//draw_rect(triangle.points[0].x, triangle.points[0].y, 1, 1, BLUE);
-	//	//draw_rect(triangle.points[1].x, triangle.points[1].y, 1, 1, BLUE);
-	//	//draw_rect(triangle.points[2].x, triangle.points[2].y, 1, 1, BLUE);
-	//	draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, RED);
-	//	draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, BLUE);
-	//	draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, YELLOW);
-	//}
-	vec3_t a = { 2.5, 6.4, 3.0 };
-	vec3_t b = { -2.2, 1.4, -1.0 };
-
-	float lengthA = vec3_magnitude(a);
-	float lengthB = vec3_magnitude(b);
-
+	 // Loop all projected triangles and render them
+	for (int i = 0; i < numOfTriangles; i++) {
+		triangle_t triangle = triangles_to_render[i];
+		draw_rect(triangle.points[0].x, triangle.points[0].y, 4, 4, GREEN);
+		draw_rect(triangle.points[1].x, triangle.points[1].y, 4, 4, GREEN);
+		draw_rect(triangle.points[2].x, triangle.points[2].y, 4, 4, GREEN);
+		draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, RED);
+		draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, RED);
+		draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, RED);
+	}
 
 	array_free(triangles_to_render);
 

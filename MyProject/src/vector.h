@@ -26,6 +26,7 @@ vec2_t vec2_add(vec2_t a, vec2_t b);
 vec2_t vec2_subtract(vec2_t a, vec2_t b);
 vec2_t vec2_multiply(vec2_t a, float s);
 vec2_t vec2_divide(vec2_t a, float s);
+float vec2_dotProduct(vec2_t a, vec2_t b);
 
 #pragma endregion Vector TWO D Functions
 #pragma region Vector THREE D Functions

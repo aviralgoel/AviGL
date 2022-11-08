@@ -17,10 +17,17 @@ unsigned char swap_temp[sizeof(x) == sizeof(y) ? (signed)sizeof(x) : -1]; \
 // time in millisecond taken by each frame
 #define FRAME_TARGET_TIME (1000 / FPS)
 
-#define YELLOW (0xFFFFFF00)
+
+#pragma region Color Macros
 #define BLUE (0xFF0000FF)
-#define RED (0xFFFF0000)
+#define GREEN (0xFF00FF00)
 #define PURPLE (0xFFA020F0)
+#define RED (0xFFFF0000)
+#define YELLOW (0xFFFFFF00)
+#pragma endregion Color Macros
+
+
+
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;
 extern uint32_t* color_buffer;

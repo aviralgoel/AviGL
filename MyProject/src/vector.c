@@ -63,6 +63,13 @@ vec2_t vec2_divide(vec2_t a, float s)
 	return result;
 }
 
+
+float vec2_dotProduct(vec2_t a, vec2_t b)
+{
+	float result = (a.x * b.x) + (a.y * b.y);
+	return result;
+}
+
 #pragma endregion Vector TWOD Functions
 
 #pragma region Vector THREED Functions
