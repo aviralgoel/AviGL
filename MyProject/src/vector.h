@@ -26,6 +26,7 @@ vec2_t vec2_add(vec2_t a, vec2_t b);
 vec2_t vec2_subtract(vec2_t a, vec2_t b);
 vec2_t vec2_multiply(vec2_t a, float s);
 vec2_t vec2_divide(vec2_t a, float s);
+void vec2_normalize(vec2_t* v);
 float vec2_dotProduct(vec2_t a, vec2_t b);
 
 #pragma endregion Vector TWO D Functions
@@ -41,7 +42,9 @@ vec3_t vec3_subtract(vec3_t a, vec3_t b);
 vec3_t vec3_multiply(vec3_t a, float s);
 vec3_t vec3_divide(vec3_t a, float s);
 vec3_t vec3_crossProduct(vec3_t a, vec3_t b);
+void vec3_normalize(vec3_t* v);
 float vec3_dotProduct(vec3_t a, vec3_t b);
+
 #pragma endregion Vector THREE D Functions
 
 #endif

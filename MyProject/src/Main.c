@@ -110,10 +110,14 @@ void update(void) {
 		// Back face culling
 		vec3_t BminusA = vec3_subtract(transformed_vertices[1], transformed_vertices[0]);
 		vec3_t CminusA = vec3_subtract(transformed_vertices[2], transformed_vertices[0]);
+		vec3_normalize(&CminusA);
+		vec3_normalize(&BminusA);
 		vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
+		vec3_normalize(&normalToABC);
+		
 		vec3_t cameraRay = vec3_subtract(camera_position, transformed_vertices[0]);
 		float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
-		if (camRayDotFaceNormal > 0)
+		if (camRayDotFaceNormal < 0)
 			continue;
 	
 		// Loop all three vertices of this current face 

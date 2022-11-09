@@ -64,6 +64,14 @@ vec2_t vec2_divide(vec2_t a, float s)
 }
 
 
+void vec2_normalize(vec2_t* v)
+{
+	float magnitude = vec2_magnitude(*v);
+	v->x = v->x / magnitude;
+	v->y = v->y / magnitude;
+	
+}
+
 float vec2_dotProduct(vec2_t a, vec2_t b)
 {
 	float result = (a.x * b.x) + (a.y * b.y);
@@ -127,6 +135,14 @@ vec3_t vec3_crossProduct(vec3_t a, vec3_t b)
 	return result;
 }
 
+
+void vec3_normalize(vec3_t* v)
+{
+	float magnitude = vec3_magnitude(*v);
+	v->x = v->x / magnitude;
+	v->y = v->y / magnitude;
+	v->z = v->z / magnitude;
+}
 
 float vec3_dotProduct(vec3_t a, vec3_t b)
 {
