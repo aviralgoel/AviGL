@@ -1,4 +1,4 @@
-# 3DRenderer
+# Avi(ral's) Graphics Library
 Development of my own 3d renderer in C
 
 # What?
