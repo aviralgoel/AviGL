@@ -35,7 +35,7 @@ void setup(void) {
 		window_height
 	);
 	//load_cube_mesh_data();
-	load_obj_file_data("./assets/f22.obj");
+	load_obj_file_data("./assets/cube.obj");
 }
 
 void process_input(void) {
@@ -107,6 +107,15 @@ void update(void) {
 			transformed_vertex.z -= camera_position.z;
 			transformed_vertices[j] = transformed_vertex;
 		}
+		// Back face culling
+		vec3_t BminusA = vec3_subtract(transformed_vertices[1], transformed_vertices[0]);
+		vec3_t CminusA = vec3_subtract(transformed_vertices[2], transformed_vertices[0]);
+		vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
+		vec3_t cameraRay = vec3_subtract(camera_position, transformed_vertices[0]);
+		float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
+		if (camRayDotFaceNormal > 0)
+			continue;
+	
 		// Loop all three vertices of this current face 
 		// and apply perspective divide to the transformed vertices
 		// an empty triangle
