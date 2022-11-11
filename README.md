@@ -20,7 +20,7 @@ A C program which renders (or draws) 3D models on screen.
 8. Draw every non culled triangle/face
 ## Result
 
-![image](https://user-images.githubusercontent.com/5007364/200733963-31928f2d-8dbf-4cda-8c84-0a689372e44c.png)
+![backface_culling](https://user-images.githubusercontent.com/5007364/200764634-16a2def7-3125-4f5c-bc75-3b6272c58c83.gif)
 
 
 
