@@ -1,7 +1,6 @@
 #pragma  once
 
 #include "vector.h"
-
 // face is a collection of 3 integers
 // each integer represents the memory location of vertex 
 typedef struct {
@@ -15,4 +14,6 @@ typedef struct {
 typedef struct {
     vec2_t points[3];
 } triangle_t;
+
+triangle_t sortVertsByY(triangle_t unsorted);
 

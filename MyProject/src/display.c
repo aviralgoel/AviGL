@@ -1,5 +1,4 @@
 #include "display.h"
-
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 uint32_t* color_buffer = NULL;
@@ -146,12 +145,19 @@ void draw_line_BLA(int x0, int y0, int x1, int y1, uint32_t color)
 		} 
 	}
 }
+/// <summary>
+/// draws a wire frame triangle
+/// </summary>
+/// <param name="triangle">struct for triangle coordinates</param>
+/// <param name="color">wire frame color of triangle</param>
+/// <param name="showVertices">true if vertices should be highlighted in GREEN</param>
 
-	
 
-
-
-
+//void draw_filled_triangle(triangle_t triangle, uint32_t color)
+//{	
+//	triangle = sortVertsByY(triangle);
+//	
+//}
 
 void clear_color_buffer(uint32_t color) {
 	for (int y = 0; y < window_height; y++) {
@@ -165,4 +171,24 @@ void destroy_window(void) {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+}
+
+void draw_triangle(triangle_t triangle, uint32_t color, bool showVertex)
+{
+	draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, color);
+	draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, color);
+	draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, color);
+	if(showVertex)
+	{
+		draw_rect(triangle.points[0].x, triangle.points[0].y, 4, 4, GREEN);
+		draw_rect(triangle.points[1].x, triangle.points[1].y, 4, 4, GREEN);
+		draw_rect(triangle.points[2].x, triangle.points[2].y, 4, 4, GREEN);
+	}
+}
+
+void draw_triangle_filled(triangle_t triangle, uint32_t color)
+{
+	triangle = sortVertsByY(triangle);
+	draw_triangle(triangle, color, true);
+
 }
