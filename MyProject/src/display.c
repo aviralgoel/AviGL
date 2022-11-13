@@ -186,7 +186,7 @@ void draw_triangle(triangle_t triangle, uint32_t color, bool showVertex)
 	}
 }
 
-void draw_triangle_filled(triangle_t triangle, uint32_t color)
+void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t borderColor)
 {	
 	
 	triangle = sortVertsByY(triangle);
@@ -196,7 +196,7 @@ void draw_triangle_filled(triangle_t triangle, uint32_t color)
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
 	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float) (y2 - y0)) + x0;
 	int My = y1;
-	draw_triangle(triangle, color, true);
+	draw_triangle(triangle, borderColor, true);
 	triangle_t flatBottom = {
 	.points[0].x = x0, .points[0].y = y0,
 	.points[1].x = x1, .points[1].y = y1,
@@ -205,9 +205,20 @@ void draw_triangle_filled(triangle_t triangle, uint32_t color)
 	.points[0].x = x1, .points[0].y = y1,
 	.points[1].x = x2, .points[1].y = y2,
 	.points[2].x = Mx, .points[2].y = My };
+	if (y1 == y2)
+	{
+		fill_flat_bottom(flatBottom, fillColor);
+	}
+	else if (y0 == y1)
+	{
+		fill_flat_top(flatTop, fillColor);
+	}
+	else
+	{
+		fill_flat_bottom(flatBottom, fillColor);
+		fill_flat_top(flatTop, fillColor);
+	}
 
-	fill_flat_bottom(flatBottom, color);
-	fill_flat_top(flatTop, color);
 
 }
 

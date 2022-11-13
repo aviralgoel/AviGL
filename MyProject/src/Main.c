@@ -35,7 +35,7 @@ void setup(void) {
 		window_height
 	);
 	//load_cube_mesh_data();
-	load_obj_file_data("./assets/f22.obj");
+	load_obj_file_data("./assets/cube.obj");
 }
 
 void process_input(void) {
@@ -77,7 +77,7 @@ void update(void) {
 
 	mesh.rotation.x += 0.03;
 	mesh.rotation.y += 0.03;
-	//mesh.rotation.z += 0.01;
+	mesh.rotation.z += 0.01;
 
 	// Loop all triangle faces of our mesh
 	// for a cube there are 6 sides = 6*2 triangular faces
@@ -101,7 +101,7 @@ void update(void) {
 			// transform
 			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
 			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-			//transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
 			// Translate the vertex away from the camera
 			transformed_vertex.z -= camera_position.z;
@@ -150,7 +150,7 @@ void render(void) {
 	// Loop all projected triangles and render them
 	for (int i = 0; i < numOfTriangles; i++) {
 		triangle_t triangle = triangles_to_render[i];
-		draw_triangle_filled(triangle, RED, true);
+		draw_triangle_filled(triangle, RED, PURPLE, true);
 	}
 
 	//triangle_t triangle = { 
