@@ -105,7 +105,7 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color)
 
 	float current_x = x0;
 	float current_y = y0;
-	for (int i = 0; i < side_length; i++)
+	for (int i = 0; i <= side_length; i++)
 	{
 		draw_pixel(round(current_x), round(current_y), color);
 		current_x += x_inc;
@@ -187,8 +187,68 @@ void draw_triangle(triangle_t triangle, uint32_t color, bool showVertex)
 }
 
 void draw_triangle_filled(triangle_t triangle, uint32_t color)
-{
+{	
+	
 	triangle = sortVertsByY(triangle);
+	// find the coordinates of line that divides the triangle into flat bottom and flat top
+	int x0, x1, x2, y0, y1, y2;
+	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
+	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
+	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float) (y2 - y0)) + x0;
+	int My = y1;
 	draw_triangle(triangle, color, true);
+	triangle_t flatBottom = {
+	.points[0].x = x0, .points[0].y = y0,
+	.points[1].x = x1, .points[1].y = y1,
+	.points[2].x = Mx, .points[2].y = My};
+	triangle_t flatTop = {
+	.points[0].x = x1, .points[0].y = y1,
+	.points[1].x = x2, .points[1].y = y2,
+	.points[2].x = Mx, .points[2].y = My };
 
+	fill_flat_bottom(flatBottom, color);
+	fill_flat_top(flatTop, color);
+
+}
+
+void fill_flat_bottom(triangle_t triangle, uint32_t color)
+{
+	
+	int x0, x1, x2, y0, y1, y2;
+	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
+	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
+
+	/* Note to self:
+	Definition of slope: rise/run => (another iterpretation) how much Y changes if change in x = 1
+	Definition of (slope)^-1 => run/rise => (another interpretation) how much X changes if change in y = 1 */
+	float invSlope1 = (float)(x0 - x1) / (float)(y0 - y1) ;
+	float invSlope2 = (float)(x0 - x2) / (float)(y0 - y2) ;
+	float x_start = x0;
+	float x_end = x0;
+	for (int i = y0; i <= y1; i++)
+	{	
+		draw_line(x_start, i, x_end, i, color);
+		x_start += invSlope1;
+		x_end +=  invSlope2;
+	}
+
+
+}
+
+void fill_flat_top(triangle_t triangle, uint32_t color)
+{
+	int x0, x1, x2, y0, y1, y2;
+	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
+	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
+	float invSlope1 = (float)(x0 - x1) / (float)(y0 - y1);
+	float invSlope2 = (float)(x2 - x1) / (float)(y2 - y1);
+	
+	float x_start = x1;
+	float x_end = x1;
+	for (int i = y1; i >= y0; i--)
+	{
+		draw_line(x_start, i, x_end, i, color);
+		x_start -= invSlope2;
+		x_end -= invSlope1;
+	}
 }

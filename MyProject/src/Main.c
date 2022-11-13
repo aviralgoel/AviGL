@@ -147,18 +147,18 @@ void update(void) {
 void render(void) {
 	draw_grid();
 	int numOfTriangles = array_length(triangles_to_render);
-	 // Loop all projected triangles and render them
-	//for (int i = 0; i < numOfTriangles; i++) {
-	//	triangle_t triangle = triangles_to_render[i];
-	//	draw_triangle(triangle, RED);
-	//}
+	// Loop all projected triangles and render them
+	for (int i = 0; i < numOfTriangles; i++) {
+		triangle_t triangle = triangles_to_render[i];
+		draw_triangle_filled(triangle, RED, true);
+	}
 
-	triangle_t triangle = { 
-		.points[2].x = 300, .points[2].y = 100,
-		.points[1].x = 650, .points[1].y = 400 ,
-		.points[0].x = 500, .points[0].y = 700 
-	};
-	draw_triangle_filled(triangle, YELLOW, true);
+	//triangle_t triangle = { 
+	//	.points[2].x = 300, .points[2].y = 100,
+	//	.points[1].x = 650, .points[1].y = 400 ,
+	//	.points[0].x = 500, .points[0].y = 700 
+	//};
+	//draw_triangle_filled(triangle, YELLOW, true);
 
 	array_free(triangles_to_render);
 
