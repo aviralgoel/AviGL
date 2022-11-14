@@ -205,15 +205,15 @@ void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t bord
 	.points[0].x = x1, .points[0].y = y1,
 	.points[1].x = x2, .points[1].y = y2,
 	.points[2].x = Mx, .points[2].y = My };
-	if (y1 == y2)
+	if (y1 == y2) // Pure flat bottom
 	{
 		fill_flat_bottom(flatBottom, fillColor);
 	}
-	else if (y0 == y1)
+	else if (y0 == y1) // Pure flat top
 	{
 		fill_flat_top(flatTop, fillColor);
 	}
-	else
+	else // Regular Triangle
 	{
 		fill_flat_bottom(flatBottom, fillColor);
 		fill_flat_top(flatTop, fillColor);

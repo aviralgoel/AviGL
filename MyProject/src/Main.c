@@ -21,7 +21,10 @@ float fov_factor = 1040;
 
 bool is_running = false;
 int previous_frame_time = 0;
-
+// Rendering mode
+enum renderMode { WireframePure, WireframeWithVertex, FilledTriangles, WireframeWithFilledTriangles};
+bool backfaceCulling = false;
+enum  renderMode mode;
 void setup(void) {
 	// Allocate the required memory in bytes to hold the color buffer
 	color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
@@ -36,6 +39,9 @@ void setup(void) {
 	);
 	//load_cube_mesh_data();
 	load_obj_file_data("./assets/cube.obj");
+
+	//rendering mode
+	enum  renderMode mode = WireframePure;
 }
 
 void process_input(void) {
@@ -49,7 +55,21 @@ void process_input(void) {
 	case SDL_KEYDOWN:
 		if (event.key.keysym.sym == SDLK_ESCAPE)
 			is_running = false;
+		if (event.key.keysym.sym == SDLK_c)
+			backfaceCulling = true;
+		if (event.key.keysym.sym == SDLK_d)
+			backfaceCulling = false;
+		if (event.key.keysym.sym == SDLK_2)
+			mode = WireframePure;
+		if (event.key.keysym.sym == SDLK_1)
+			mode = WireframeWithVertex;
+		if (event.key.keysym.sym == SDLK_3)
+			mode = FilledTriangles;
+		if (event.key.keysym.sym == SDLK_4)
+			mode = WireframeWithFilledTriangles;
+
 		break;
+
 	}
 }
 
@@ -108,17 +128,21 @@ void update(void) {
 			transformed_vertices[j] = transformed_vertex;
 		}
 		// Back face culling
-		vec3_t BminusA = vec3_subtract(transformed_vertices[1], transformed_vertices[0]);
-		vec3_t CminusA = vec3_subtract(transformed_vertices[2], transformed_vertices[0]);
-		vec3_normalize(&CminusA);
-		vec3_normalize(&BminusA);
-		vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
-		vec3_normalize(&normalToABC);
-		
-		vec3_t cameraRay = vec3_subtract(camera_position, transformed_vertices[0]);
-		float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
-		if (camRayDotFaceNormal < 0)
-			continue;
+	
+		if (backfaceCulling)
+		{
+			vec3_t BminusA = vec3_subtract(transformed_vertices[1], transformed_vertices[0]);
+			vec3_t CminusA = vec3_subtract(transformed_vertices[2], transformed_vertices[0]);
+			vec3_normalize(&CminusA);
+			vec3_normalize(&BminusA);
+			vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
+			vec3_normalize(&normalToABC);
+			
+			vec3_t cameraRay = vec3_subtract(camera_position, transformed_vertices[0]);
+			float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
+			if (camRayDotFaceNormal < 0)
+				continue;
+		}
 	
 		// Loop all three vertices of this current face 
 		// and apply perspective divide to the transformed vertices
@@ -150,7 +174,24 @@ void render(void) {
 	// Loop all projected triangles and render them
 	for (int i = 0; i < numOfTriangles; i++) {
 		triangle_t triangle = triangles_to_render[i];
-		draw_triangle_filled(triangle, RED, PURPLE, true);
+		//draw_triangle_filled(triangle, RED, PURPLE, true);
+		if (mode == WireframePure)
+		{
+			draw_triangle(triangle, RED, false);
+		}
+		else if (mode == WireframeWithVertex)
+		{
+			draw_triangle(triangle, RED, true);
+		}
+		else if (mode == WireframeWithFilledTriangles)
+		{
+			draw_triangle_filled(triangle, PURPLE, RED);
+		}
+		else if (mode == FilledTriangles)
+		{
+			draw_triangle_filled(triangle, PURPLE, PURPLE);
+		}
+		
 	}
 
 	//triangle_t triangle = { 
