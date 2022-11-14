@@ -37,8 +37,8 @@ void setup(void) {
 		window_width,
 		window_height
 	);
-	//load_cube_mesh_data();
-	load_obj_file_data("./assets/cube.obj");
+	load_cube_mesh_data();
+	//load_obj_file_data("./assets/cube.obj");
 
 	//rendering mode
 	enum  renderMode mode = WireframePure;
@@ -146,6 +146,7 @@ void update(void) {
 	
 		// Loop all three vertices of this current face 
 		// and apply perspective divide to the transformed vertices
+		// 
 		// an empty triangle
 		triangle_t projected_triangle;
 		for (int j = 0; j < 3; j++) {
@@ -160,6 +161,7 @@ void update(void) {
 			projected_triangle.points[j] = projected_point;
 			// At this point, we know WHERE on the screen A vertex of a triangle should be painted
 		}
+		projected_triangle.color = mesh_face.color;
 		// in an array of projected triangles, where each triangle has 3 points,
 		// save those 3 points (ready to be painted) all at once, 
 		// Save the projected triangle in the array of triangles to render
@@ -185,7 +187,7 @@ void render(void) {
 		}
 		else if (mode == WireframeWithFilledTriangles)
 		{
-			draw_triangle_filled(triangle, PURPLE, RED);
+			draw_triangle_filled(triangle, triangle.color, RED);
 		}
 		else if (mode == FilledTriangles)
 		{
