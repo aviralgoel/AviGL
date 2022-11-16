@@ -1,11 +1,6 @@
 #include "triangle.h"
 
-#define swap(x,y) do{ \
-unsigned char swap_temp[sizeof(x) == sizeof(y) ? (signed)sizeof(x) : -1]; \
-	   memcpy(swap_temp, &y, sizeof(x)); \
-	   memcpy(&y, &x, sizeof(x)); \
-	   memcpy(&x, swap_temp, sizeof(x)); \
-	} while (0);
+
 
 /// <summary>
 /// accepts a triangle with vertex in any order, return a triangle where y0 &lt; y1 &lt; y2

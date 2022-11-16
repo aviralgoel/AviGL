@@ -7,8 +7,35 @@
 #include "display.h"
 #include "vector.h"
 #include "mesh.h"
+#include "triangle.h"
 #pragma endregion
 
+
+int partition(triangle_t arr[], int l, int r, float pivot) {
+	while (l <= r) {
+		while (arr[l].avg_depth > pivot) {
+			l++;
+		}
+		while (arr[r].avg_depth < pivot) {
+			r--;
+		}
+		if (l <= r) {
+			swap(arr[l], arr[r]);
+			l++;
+			r--;
+		}
+	}
+	return l;
+}
+void quick_sort(triangle_t arr[], int l, int r) {
+	if (l >= r) {
+		return;
+	}
+	float pivot = arr[l + (r - l) / 2].avg_depth;
+	int partition_index = partition(arr, l, r, pivot);
+	quick_sort(arr, 0, partition_index - 1);
+	quick_sort(arr, partition_index, r);
+}
 // Function Prototypes
 void free_resources(void);
 // Number of triangles to be rendered = number of faces (since each triangle corresponds to one face)
@@ -24,6 +51,7 @@ int previous_frame_time = 0;
 // Rendering mode
 enum renderMode { WireframePure, WireframeWithVertex, FilledTriangles, WireframeWithFilledTriangles};
 bool backfaceCulling = false;
+bool paintersAlgorithm = false;
 enum  renderMode mode;
 void setup(void) {
 	// Allocate the required memory in bytes to hold the color buffer
@@ -42,6 +70,8 @@ void setup(void) {
 
 	//rendering mode
 	enum  renderMode mode = WireframePure;
+	backfaceCulling = false;
+	paintersAlgorithm = false;
 }
 
 void process_input(void) {
@@ -67,6 +97,8 @@ void process_input(void) {
 			mode = FilledTriangles;
 		if (event.key.keysym.sym == SDLK_4)
 			mode = WireframeWithFilledTriangles;
+		if (event.key.keysym.sym == SDLK_p)
+			paintersAlgorithm = !paintersAlgorithm;
 
 		break;
 
@@ -162,12 +194,22 @@ void update(void) {
 			// At this point, we know WHERE on the screen A vertex of a triangle should be painted
 		}
 		projected_triangle.color = mesh_face.color;
+		projected_triangle.avg_depth = (transformed_vertices[0].z + 
+			transformed_vertices[1].z + 
+			transformed_vertices[2].z) / 3;
 		// in an array of projected triangles, where each triangle has 3 points,
 		// save those 3 points (ready to be painted) all at once, 
 		// Save the projected triangle in the array of triangles to render
 		//triangles_to_render[i] = projected_triangle;
 		array_push(triangles_to_render, projected_triangle);
 	}
+	// Sort by Z buffer
+	if (paintersAlgorithm)
+	{
+		quick_sort(triangles_to_render, 0, array_length(triangles_to_render) - 1);
+	}
+		
+
 }
 
 void render(void) {

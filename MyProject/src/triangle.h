@@ -1,6 +1,13 @@
 #pragma  once
 #include <stdint.h>
 #include "vector.h"
+
+#define swap(x,y) do{ \
+unsigned char swap_temp[sizeof(x) == sizeof(y) ? (signed)sizeof(x) : -1]; \
+	   memcpy(swap_temp, &y, sizeof(x)); \
+	   memcpy(&y, &x, sizeof(x)); \
+	   memcpy(&x, swap_temp, sizeof(x)); \
+	} while (0);
 // face is a collection of 3 integers
 // each integer represents the memory location of vertex 
 typedef struct {
@@ -15,6 +22,7 @@ typedef struct {
 typedef struct {
     vec2_t points[3];
     uint32_t color;
+    float avg_depth;
 } triangle_t;
 
 triangle_t sortVertsByY(triangle_t unsorted);
