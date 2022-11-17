@@ -10,13 +10,46 @@
 #include "triangle.h"
 #pragma endregion
 
-
-int partition(triangle_t arr[], int l, int r, float pivot) {
+int sorter_ascending(const void* first_arg, const void* second_arg)
+{
+	int first = *(int*)first_arg;
+	int second = *(int*)second_arg;
+	if (first > second)
+	{
+		return -1;
+	}
+	else if (first == second)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+int sorter_descending(const void* first_arg, const void* second_arg)
+{
+	int first = *(int*)first_arg;
+	int second = *(int*)second_arg;
+	if (first < second)
+	{
+		return -1;
+	}
+	else if (first == second)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+int partition(triangle_t arr[], int l, int r, float pivot, int (*compare)(const void*, const void*)) {
 	while (l <= r) {
-		while (arr[l].avg_depth > pivot) {
+		while (compare(&arr[l].avg_depth, &pivot)==1) {
 			l++;
 		}
-		while (arr[r].avg_depth < pivot) {
+		while (compare(&arr[r].avg_depth, &pivot) == -1) {
 			r--;
 		}
 		if (l <= r) {
@@ -27,14 +60,14 @@ int partition(triangle_t arr[], int l, int r, float pivot) {
 	}
 	return l;
 }
-void quick_sort(triangle_t arr[], int l, int r) {
+void quick_sort(triangle_t arr[], int l, int r, int (*compare)(const void*, const void*)) {
 	if (l >= r) {
 		return;
 	}
 	float pivot = arr[l + (r - l) / 2].avg_depth;
-	int partition_index = partition(arr, l, r, pivot);
-	quick_sort(arr, 0, partition_index - 1);
-	quick_sort(arr, partition_index, r);
+	int partition_index = partition(arr, l, r, pivot, compare);
+	quick_sort(arr, 0, partition_index - 1, compare);
+	quick_sort(arr, partition_index, r, compare);
 }
 // Function Prototypes
 void free_resources(void);
@@ -71,7 +104,7 @@ void setup(void) {
 	//rendering mode
 	enum  renderMode mode = WireframePure;
 	backfaceCulling = false;
-	paintersAlgorithm = false;
+	paintersAlgorithm = true;
 }
 
 void process_input(void) {
@@ -206,7 +239,7 @@ void update(void) {
 	// Sort by Z buffer
 	if (paintersAlgorithm)
 	{
-		quick_sort(triangles_to_render, 0, array_length(triangles_to_render) - 1);
+		quick_sort(triangles_to_render, 0, array_length(triangles_to_render) - 1, sorter_descending);
 	}
 		
 
