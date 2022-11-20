@@ -12,6 +12,13 @@ typedef struct {
     float z;
 } vec3_t;
 
+typedef struct {
+	float x;
+	float y;
+	float z;
+    float w;
+} vec4_t;
+
 vec3_t vec3_rotate_x(vec3_t v, float angle);
 vec3_t vec3_rotate_y(vec3_t v, float angle);
 vec3_t vec3_rotate_z(vec3_t v, float angle);
@@ -44,7 +51,11 @@ vec3_t vec3_divide(vec3_t a, float s);
 vec3_t vec3_crossProduct(vec3_t a, vec3_t b);
 void vec3_normalize(vec3_t* v);
 float vec3_dotProduct(vec3_t a, vec3_t b);
-
+vec3_t vec3_from_vec4(vec4_t vec4);
 #pragma endregion Vector THREE D Functions
+
+#pragma region Vector Four D Functions
+vec4_t vec4_from_vec3(vec3_t vec3);
+#pragma endregion Vector Four D Functions
 
 #endif

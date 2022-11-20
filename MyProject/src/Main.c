@@ -9,6 +9,7 @@
 #include "mesh.h"
 #include "triangle.h"
 #include "util.h"
+#include "matrix.h"
 #pragma endregion
 
 
@@ -17,8 +18,8 @@ void free_resources(void);
 // Number of triangles to be rendered = number of faces (since each triangle corresponds to one face)
 triangle_t* triangles_to_render = NULL;
 
+
 vec3_t camera_position = { .x = 0, .y = 0, .z = -10 };
-//vec3_t cube_rotation = { .x = 0, .y = 0, .z = 0 };
 
 float fov_factor = 1040;
 
@@ -27,9 +28,19 @@ int previous_frame_time = 0;
 // Rendering mode
 enum renderMode { WireframePure, WireframeWithVertex, FilledTriangles, WireframeWithFilledTriangles};
 bool backfaceCulling = false;
-bool paintersAlgorithm = false;
+bool paintersAlgorithm = true;
+int scaleSign = 1;
 enum  renderMode mode;
+void playground(void)
+{
+	mat4_t I = mat4_make_indentity();
+	mat4_t S = mat4_make_scale(2.0, 2.5, 3.0);
+
+}
 void setup(void) {
+	
+	// Function to randomly put some test code for debugging
+	//playground();
 	// Allocate the required memory in bytes to hold the color buffer
 	color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
 
@@ -46,7 +57,7 @@ void setup(void) {
 
 	//rendering mode
 	enum  renderMode mode = WireframePure;
-	backfaceCulling = false;
+	backfaceCulling = true;
 	paintersAlgorithm = true;
 }
 
@@ -75,6 +86,10 @@ void process_input(void) {
 			mode = WireframeWithFilledTriangles;
 		if (event.key.keysym.sym == SDLK_p)
 			paintersAlgorithm = !paintersAlgorithm;
+		if (event.key.keysym.sym == SDLK_l)
+			scaleSign = -1;
+		if (event.key.keysym.sym == SDLK_m)
+			scaleSign = 1;
 
 		break;
 
@@ -106,7 +121,14 @@ void update(void) {
 	mesh.rotation.x += 0.03;
 	mesh.rotation.y += 0.03;
 	mesh.rotation.z += 0.01;
+	
+	mesh.scale.x += (scaleSign) * 0.01;
+	mesh.scale.y += (scaleSign) * 0.01;
+	mesh.scale.z += (scaleSign ) * 0.01;
+	
 
+	
+	mat4_t scaleMatrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 	// Loop all triangle faces of our mesh
 	// for a cube there are 6 sides = 6*2 triangular faces
 	int numOfFaces = array_length(mesh.faces);
@@ -126,13 +148,18 @@ void update(void) {
 		for (int j = 0; j < 3; j++) {
 			vec3_t transformed_vertex = face_vertices[j];
 
-			// transform
+			// transform (Rotate)
 			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
 			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
 			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+			// transform (Scale)
+			transformed_vertex =  vec3_from_vec4(mat4_multiply_vec4(scaleMatrix, vec4_from_vec3(transformed_vertex)));
+
 
 			// Translate the vertex away from the camera
 			transformed_vertex.z -= camera_position.z;
+
+			// save this transformed vertex into an array
 			transformed_vertices[j] = transformed_vertex;
 		}
 		// Back face culling
@@ -178,11 +205,13 @@ void update(void) {
 		// Save the projected triangle in the array of triangles to render
 		//triangles_to_render[i] = projected_triangle;
 		array_push(triangles_to_render, projected_triangle);
+		
 	}
+	int remainingFaces = array_length(triangles_to_render);
 	// Sort by Z buffer
 	if (paintersAlgorithm)
 	{
-		quick_sort(triangles_to_render, 0, array_length(triangles_to_render) - 1, sorter_descending);
+		quick_sort(triangles_to_render, 0, remainingFaces - 1, sorter_descending);
 	}
 		
 

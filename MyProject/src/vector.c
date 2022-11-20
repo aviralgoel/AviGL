@@ -150,4 +150,26 @@ float vec3_dotProduct(vec3_t a, vec3_t b)
 	return result;
 }
 
+
+vec3_t vec3_from_vec4(vec4_t vec4)
+{
+	vec3_t result = {
+		.x = vec4.x / vec4.w,
+		.y = vec4.y / vec4.w,
+		.z = vec4.z / vec4.w
+	};
+	return result;
+}
+
+vec4_t vec4_from_vec3(vec3_t vec3)
+{
+	vec4_t vec4= {
+	.x = vec3.x,
+	.y = vec3.y,
+	.z = vec3.z,
+	.w = 1
+	};
+	return vec4;
+}
+
 #pragma endregion Vector THREED Functions

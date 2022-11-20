@@ -2,7 +2,11 @@
 #include "array.h"
 #include <stdio.h>
 
-mesh_t mesh = { .vertices = NULL, .faces = NULL, .rotation = {0,0,0} };
+mesh_t mesh = { .vertices = NULL, 
+				.faces = NULL, 
+				.rotation = {0,0,0}, 
+				.scale = {1.0, 1.0, 1.0}, 
+				.translate = {0, 0, 0} };
 // coordinates of vertex in the world space
 // every vertex is currently a vec3
 vec3_t cube_vertices[N_CUBE_VERTICES] = {
