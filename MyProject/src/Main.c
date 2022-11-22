@@ -33,7 +33,7 @@ int scaleSign = 1;
 enum  renderMode mode;
 void playground(void)
 {
-	mat4_t I = mat4_make_indentity();
+	mat4_t I = mat4_make_identity();
 	mat4_t S = mat4_make_scale(2.0, 2.5, 3.0);
 
 }
@@ -90,9 +90,7 @@ void process_input(void) {
 			scaleSign = -1;
 		if (event.key.keysym.sym == SDLK_m)
 			scaleSign = 1;
-
 		break;
-
 	}
 }
 
@@ -100,7 +98,7 @@ void process_input(void) {
 // Function that receives a 3D vector and returns a projected 2D point
 ////////////////////////////////////////////////////////////////////////////////
 vec2_t project(vec3_t point) {
-	vec2_t projected_point = {
+	const vec2_t projected_point = {
 		.x = (fov_factor * point.x) / point.z,
 		.y = (fov_factor * point.y) / point.z
 	};
@@ -118,17 +116,26 @@ void update(void) {
 	}
 	previous_frame_time = SDL_GetTicks();
 
-	mesh.rotation.x += 0.03;
-	mesh.rotation.y += 0.03;
-	mesh.rotation.z += 0.01;
+	mesh.rotation.x += 0.03f;
+	mesh.rotation.y += 0.03f;
+	mesh.rotation.z += 0.03f;
 	
-	mesh.scale.x += (scaleSign) * 0.01;
-	mesh.scale.y += (scaleSign) * 0.01;
-	mesh.scale.z += (scaleSign ) * 0.01;
-	
+	mesh.scale.x += (scaleSign) * 0.02f;
+	mesh.scale.y += (scaleSign) * 0.02f;
+	mesh.scale.z += (scaleSign ) * 0.02f;
+
+	mesh.translate.x += 0.02f;
+	//mesh.translate.y += -0.01f;
+	mesh.translate.z = (-1) * (camera_position.z);
 
 	
 	mat4_t scaleMatrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+	mat4_t translateMatrix = mat4_make_translate(mesh.translate.x, mesh.translate.y, mesh.translate.z);
+	mat4_t rotXMatrix = mat4_make_rotation_x(mesh.rotation.x);
+	mat4_t rotYMatrix = mat4_make_rotation_y(mesh.rotation.y);
+	mat4_t rotZMatrix = mat4_make_rotation_z(mesh.rotation.z);
+	//mat4_t rotYMatrix = mat4_make_rotation_y(mesh.rotation.y);
+	//mat4_t rotZMatrix = mat4_make_rotation_z(mesh.rotation.z);
 	// Loop all triangle faces of our mesh
 	// for a cube there are 6 sides = 6*2 triangular faces
 	int numOfFaces = array_length(mesh.faces);
@@ -148,17 +155,17 @@ void update(void) {
 		for (int j = 0; j < 3; j++) {
 			vec3_t transformed_vertex = face_vertices[j];
 
-			// transform (Rotate)
-			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
-			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
-			// transform (Scale)
-			transformed_vertex =  vec3_from_vec4(mat4_multiply_vec4(scaleMatrix, vec4_from_vec3(transformed_vertex)));
-
-
-			// Translate the vertex away from the camera
-			transformed_vertex.z -= camera_position.z;
-
+			// transform (Order => Scale -> Rotate -> Translate)
+			mat4_t worldMatrix = mat4_make_identity();
+			
+			worldMatrix = mat4_multiply_mat4(rotXMatrix, worldMatrix);
+			worldMatrix = mat4_multiply_mat4( rotYMatrix, worldMatrix);
+			worldMatrix = mat4_multiply_mat4( rotZMatrix, worldMatrix);
+			worldMatrix = mat4_multiply_mat4( translateMatrix, worldMatrix);
+			worldMatrix = mat4_multiply_mat4(scaleMatrix, worldMatrix);
+			transformed_vertex = vec3_from_vec4(mat4_multiply_vec4(worldMatrix, vec4_from_vec3(transformed_vertex)));
+			
+			
 			// save this transformed vertex into an array
 			transformed_vertices[j] = transformed_vertex;
 		}
