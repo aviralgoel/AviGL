@@ -21,7 +21,7 @@ triangle_t* triangles_to_render = NULL;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = -10 };
 
-float fov_factor = 1040;
+mat4_t proj_matrix;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -59,6 +59,12 @@ void setup(void) {
 	enum  renderMode mode = WireframePure;
 	backfaceCulling = true;
 	paintersAlgorithm = true;
+	float fov = degreeToRadian(60);
+	float aspect = (float) window_width / (float) window_height;
+	float znear = 10;
+	float zfar = 100.0;
+	proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
+
 }
 
 void process_input(void) {
@@ -94,16 +100,6 @@ void process_input(void) {
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Function that receives a 3D vector and returns a projected 2D point
-////////////////////////////////////////////////////////////////////////////////
-vec2_t project(vec3_t point) {
-	const vec2_t projected_point = {
-		.x = (fov_factor * point.x) / point.z,
-		.y = (fov_factor * point.y) / point.z
-	};
-	return projected_point;
-}
 
 void update(void) {
 	triangles_to_render = NULL;
@@ -149,11 +145,11 @@ void update(void) {
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1];
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-		vec3_t transformed_vertices[3];
+		vec4_t transformed_vertices[3];
 
 		// Loop all three vertices of this current face and apply transformations
 		for (int j = 0; j < 3; j++) {
-			vec3_t transformed_vertex = face_vertices[j];
+			vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
 			// transform (Order => Scale -> Rotate -> Translate)
 			mat4_t worldMatrix = mat4_make_identity();
@@ -163,7 +159,7 @@ void update(void) {
 			worldMatrix = mat4_multiply_mat4( rotZMatrix, worldMatrix);
 			worldMatrix = mat4_multiply_mat4( translateMatrix, worldMatrix);
 			worldMatrix = mat4_multiply_mat4(scaleMatrix, worldMatrix);
-			transformed_vertex = vec3_from_vec4(mat4_multiply_vec4(worldMatrix, vec4_from_vec3(transformed_vertex)));
+			transformed_vertex = mat4_multiply_vec4(worldMatrix, transformed_vertex);
 			
 			
 			// save this transformed vertex into an array
@@ -173,46 +169,52 @@ void update(void) {
 	
 		if (backfaceCulling)
 		{
-			vec3_t BminusA = vec3_subtract(transformed_vertices[1], transformed_vertices[0]);
-			vec3_t CminusA = vec3_subtract(transformed_vertices[2], transformed_vertices[0]);
+			vec3_t BminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[1]), vec3_from_vec4(transformed_vertices[0]));
+			vec3_t CminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[2]), vec3_from_vec4(transformed_vertices[0]));
 			vec3_normalize(&CminusA);
 			vec3_normalize(&BminusA);
 			vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
 			vec3_normalize(&normalToABC);
 			
-			vec3_t cameraRay = vec3_subtract(camera_position, transformed_vertices[0]);
+			vec3_t cameraRay = vec3_subtract(camera_position, vec3_from_vec4(transformed_vertices[0]));
 			float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
 			if (camRayDotFaceNormal < 0)
 				continue;
 		}
-	
+		
 		// Loop all three vertices of this current face 
 		// and apply perspective divide to the transformed vertices
-		// 
-		// an empty triangle
-		triangle_t projected_triangle;
+		vec4_t projected_points[3];
+
+		// Loop all three vertices to perform projection
 		for (int j = 0; j < 3; j++) {
-			
 			// Project the current vertex
-			vec2_t projected_point = project(transformed_vertices[j]);
+			projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
 
-			// translate the projected points to the middle of the screen
-			projected_point.x += (window_width / 2);
-			projected_point.y += (window_height / 2);
+			// Scale into the view
+			projected_points[j].x *= (window_width / 2.0);
+			projected_points[j].y *= (window_height / 2.0);
 
-			projected_triangle.points[j] = projected_point;
-			// At this point, we know WHERE on the screen A vertex of a triangle should be painted
+			// Translate the projected points to the middle of the screen
+			projected_points[j].x += (window_width / 2.0);
+			projected_points[j].y += (window_height / 2.0);
 		}
-		projected_triangle.color = mesh_face.color;
-		projected_triangle.avg_depth = (transformed_vertices[0].z + 
-			transformed_vertices[1].z + 
-			transformed_vertices[2].z) / 3;
-		// in an array of projected triangles, where each triangle has 3 points,
-		// save those 3 points (ready to be painted) all at once, 
+
+		// Calculate the average depth for each face based on the vertices after transformation
+		float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;
+
+		triangle_t projected_triangle = {
+			.points = {
+				{ projected_points[0].x, projected_points[0].y },
+				{ projected_points[1].x, projected_points[1].y },
+				{ projected_points[2].x, projected_points[2].y },
+			},
+			.color = mesh_face.color,
+			.avg_depth = avg_depth
+		};
+
 		// Save the projected triangle in the array of triangles to render
-		//triangles_to_render[i] = projected_triangle;
 		array_push(triangles_to_render, projected_triangle);
-		
 	}
 	int remainingFaces = array_length(triangles_to_render);
 	// Sort by Z buffer

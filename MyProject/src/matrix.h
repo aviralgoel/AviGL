@@ -15,4 +15,5 @@ mat4_t mat4_make_translate(float tx, float ty, float tz);
 mat4_t mat4_multiply_mat4(mat4_t matA, mat4_t matB);
 vec3_t mat4_multiply_vec3(mat4_t mat, vec3_t v);
 vec4_t mat4_multiply_vec4 (mat4_t mat, vec4_t v);
-
+mat4_t mat4_make_perspective(float fov, float aspect, float znear, float zfar);
+vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v);

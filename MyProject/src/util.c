@@ -58,3 +58,8 @@ void quick_sort(triangle_t arr[], int l, int r, int (*compare)(const void*, cons
 	quick_sort(arr, 0, partition_index - 1, compare);
 	quick_sort(arr, partition_index, r, compare);
 }
+
+float degreeToRadian(float degAngle)
+{
+	return (3.141592) * (degAngle / 180);
+}
