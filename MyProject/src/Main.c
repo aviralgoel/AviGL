@@ -10,8 +10,8 @@
 #include "triangle.h"
 #include "util.h"
 #include "matrix.h"
+#include "light.h"
 #pragma endregion
-
 
 // Function Prototypes
 void free_resources(void);
@@ -20,7 +20,7 @@ triangle_t* triangles_to_render = NULL;
 
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = -10 };
-
+light_t dir_light = { .direction = {-1,-1,-1} };
 mat4_t proj_matrix;
 
 bool is_running = false;
@@ -31,12 +31,8 @@ bool backfaceCulling = false;
 bool paintersAlgorithm = true;
 int scaleSign = 1;
 enum  renderMode mode;
-void playground(void)
-{
-	mat4_t I = mat4_make_identity();
-	mat4_t S = mat4_make_scale(2.0, 2.5, 3.0);
 
-}
+
 void setup(void) {
 	
 	// Function to randomly put some test code for debugging
@@ -52,8 +48,8 @@ void setup(void) {
 		window_width,
 		window_height
 	);
-	load_cube_mesh_data();
-	//load_obj_file_data("./assets/cube.obj");
+	//load_cube_mesh_data();
+	load_obj_file_data("./assets/f22.obj");
 
 	//rendering mode
 	enum  renderMode mode = WireframePure;
@@ -66,6 +62,7 @@ void setup(void) {
 	proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
 
 }
+
 
 void process_input(void) {
 	SDL_Event event;
@@ -115,23 +112,19 @@ void update(void) {
 	mesh.rotation.x += 0.03f;
 	mesh.rotation.y += 0.03f;
 	mesh.rotation.z += 0.03f;
-	
-	mesh.scale.x += (scaleSign) * 0.02f;
-	mesh.scale.y += (scaleSign) * 0.02f;
-	mesh.scale.z += (scaleSign ) * 0.02f;
 
-	mesh.translate.x += 0.02f;
+	//mesh.translate.x += 0.02f;
 	//mesh.translate.y += -0.01f;
 	mesh.translate.z = (-1) * (camera_position.z);
-
+	mesh.scale.x = 2;
+	mesh.scale.y = 2;
+	mesh.scale.z = 1;
 	
 	mat4_t scaleMatrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 	mat4_t translateMatrix = mat4_make_translate(mesh.translate.x, mesh.translate.y, mesh.translate.z);
 	mat4_t rotXMatrix = mat4_make_rotation_x(mesh.rotation.x);
 	mat4_t rotYMatrix = mat4_make_rotation_y(mesh.rotation.y);
 	mat4_t rotZMatrix = mat4_make_rotation_z(mesh.rotation.z);
-	//mat4_t rotYMatrix = mat4_make_rotation_y(mesh.rotation.y);
-	//mat4_t rotZMatrix = mat4_make_rotation_z(mesh.rotation.z);
 	// Loop all triangle faces of our mesh
 	// for a cube there are 6 sides = 6*2 triangular faces
 	int numOfFaces = array_length(mesh.faces);
@@ -166,21 +159,22 @@ void update(void) {
 			transformed_vertices[j] = transformed_vertex;
 		}
 		// Back face culling
-	
+		vec3_t BminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[1]), vec3_from_vec4(transformed_vertices[0]));
+		vec3_t CminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[2]), vec3_from_vec4(transformed_vertices[0]));
+		vec3_normalize(&CminusA);
+		vec3_normalize(&BminusA);
+		vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
+		vec3_normalize(&normalToABC);
 		if (backfaceCulling)
-		{
-			vec3_t BminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[1]), vec3_from_vec4(transformed_vertices[0]));
-			vec3_t CminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[2]), vec3_from_vec4(transformed_vertices[0]));
-			vec3_normalize(&CminusA);
-			vec3_normalize(&BminusA);
-			vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
-			vec3_normalize(&normalToABC);
-			
+		{		
 			vec3_t cameraRay = vec3_subtract(camera_position, vec3_from_vec4(transformed_vertices[0]));
 			float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
 			if (camRayDotFaceNormal < 0)
 				continue;
 		}
+		float lightEffect = normalizeInRange(vec3_dotProduct(normalToABC, dir_light.direction), 1, -1);
+		mesh_face.color = GOLD;
+		mesh_face.color = light_apply_intensity(mesh_face.color, lightEffect);
 		
 		// Loop all three vertices of this current face 
 		// and apply perspective divide to the transformed vertices
@@ -217,11 +211,20 @@ void update(void) {
 		array_push(triangles_to_render, projected_triangle);
 	}
 	int remainingFaces = array_length(triangles_to_render);
+	
+	quicksort_triangles(triangles_to_render, 0, remainingFaces - 1);
+
 	// Sort by Z buffer
-	if (paintersAlgorithm)
-	{
-		quick_sort(triangles_to_render, 0, remainingFaces - 1, sorter_descending);
-	}
+	//for (int i = 0; i < remainingFaces; i++) {
+	//	for (int j = i; j < remainingFaces; j++) {
+	//		if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth) {
+	//			// Swap the triangles positions in the array
+	//			triangle_t temp = triangles_to_render[i];
+	//			triangles_to_render[i] = triangles_to_render[j];
+	//			triangles_to_render[j] = temp;
+	//		}
+	//	}
+	//}
 		
 
 }

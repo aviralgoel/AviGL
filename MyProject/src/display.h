@@ -18,6 +18,7 @@
 #define PURPLE (0xFFA020F0)
 #define RED (0xFFFF0000)
 #define YELLOW (0xFFFFFF00)
+#define GOLD (0xFFD700)
 #pragma endregion Color Macros
 
 

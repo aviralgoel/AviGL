@@ -1,4 +1,9 @@
 #include "util.h"
+float normalizeInRange(float value, float max, float min)
+{
+	float result = (value - min) / (max - min);
+	return result;
+}
 int sorter_ascending(const void* first_arg, const void* second_arg)
 {
 	int first = *(int*)first_arg;
@@ -33,33 +38,46 @@ int sorter_descending(const void* first_arg, const void* second_arg)
 		return 1;
 	}
 }
-int partition(triangle_t arr[], int l, int r, float pivot, int (*compare)(const void*, const void*)) {
-	while (l <= r) {
-		while (compare(&arr[l].avg_depth, &pivot) == 1) {
-			l++;
-		}
-		while (compare(&arr[r].avg_depth, &pivot) == -1) {
-			r--;
-		}
-		if (l <= r) {
-			swap(arr[l], arr[r]);
-			l++;
-			r--;
-		}
-	}
-	return l;
-}
-void quick_sort(triangle_t arr[], int l, int r, int (*compare)(const void*, const void*)) {
-	if (l >= r) {
-		return;
-	}
-	float pivot = arr[l + (r - l) / 2].avg_depth;
-	int partition_index = partition(arr, l, r, pivot, compare);
-	quick_sort(arr, 0, partition_index - 1, compare);
-	quick_sort(arr, partition_index, r, compare);
-}
+
 
 float degreeToRadian(float degAngle)
 {
 	return (3.141592) * (degAngle / 180);
+}
+
+int partition_triangle_array(triangle_t arr[], int first_index, int last_index, float pivot)
+{
+
+	// Store a swap index
+	int i = first_index;
+
+	// Iterate through the current partition, swapping elements larger than the pivot
+	for (int j = first_index; j < last_index; j++) {
+		if (arr[j].avg_depth > pivot) {
+			// Swap if necessary...
+			if (i != j) {
+				swap(arr[i], arr[j]);
+			}
+
+			// Increment our swap index since the current element is larger than our pivot
+			i++;
+		}
+	}
+
+	// Swap our pivot element into place
+	swap(arr[i], arr[last_index]);
+
+	// All elements up to arr[i] should be larger than the pivot so return the pivot index
+	return i;
+}
+
+void quicksort_triangles(triangle_t arr[], int first_index, int last_index)
+{	
+	if (first_index >= last_index) return;
+	int pivot = arr[last_index].avg_depth;
+	int partition_index = partition_triangle_array(arr, first_index, last_index, pivot);
+	quicksort_triangles(arr, first_index, partition_index - 1);
+	quicksort_triangles(arr, partition_index + 1, last_index);
+		
+	
 }
