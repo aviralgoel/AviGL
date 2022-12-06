@@ -1,29 +1,48 @@
 # Avi(ral's) Graphics Library
-Development of my own 3d renderer in C
 
-## What?
+Development of my own 3D rendering library to learn the most fundamental algorithms (along with their implementations) of Computer Graphics. 
+It is written in purely in C.
 
-A C program which renders (or draws) 3D models on screen.
+Only two external libaries have been used <math.h> and <SDL.H>
 
 ## Pipeline
 
 ### SETUP()
-1. Read Obj Files
-2. Fill in vertex buffer (of each model) and index buffer (of each face of the triangle in a model)
+
+1. Initialize frambuffer and display window,
+2. Read Obj Files and load data into vertex buffer along with index buffer.
+3. Initialize Perspective Projection Matrix with FOV, aspect ratio, znear and zfar.
+
 ### UPDATE()
-3. Iterate over each face
-4. Translate/Scale/Rotate the each vertex of the face
-5. Do back-face culling over each face
-6. if(face not culled)
-7. then project face using perspective divide
+
+5. Maintain fixed time step
+
+6. Iterate over each face
+   
+   1. Translate/Scale/Rotate the each vertex of the face (using Matrices)
+   
+   2. Do backface culling for that face
+   
+   3. if(!culled)
+      
+      1. project the face using projection matrice multiplication
+      
+      2. Calculate and store the face's average z value
+   
+   4. for all not culled faces, sort from from to back (quicksort for painter algorithm)
+
 ### RENDER()
-8. Draw every non culled triangle/face
-## Result
 
-![backface_culling](https://user-images.githubusercontent.com/5007364/200764634-16a2def7-3125-4f5c-bc75-3b6272c58c83.gif)
+9. Draw every non culled triangle/face
 
+10. free the array of faces and clear buffer
+    
+    ## Result
 
+![backface_culling](https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo.gif?raw=true)
 
-## Why?
-Journey into becoming a graphics programmer :)
+## Motivation
+
+Journey into becoming a graphics programmer / rendering engineer / game engine developer.
+
 
