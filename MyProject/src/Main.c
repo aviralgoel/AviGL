@@ -19,7 +19,7 @@ void free_resources(void);
 triangle_t* triangles_to_render = NULL;
 
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -10 };
+vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
 light_t dir_light = { .direction = {-1,-1,-1} };
 mat4_t proj_matrix;
 
@@ -109,16 +109,16 @@ void update(void) {
 	}
 	previous_frame_time = SDL_GetTicks();
 
-	mesh.rotation.x += 0.03f;
-	mesh.rotation.y += 0.03f;
-	mesh.rotation.z += 0.03f;
+	mesh.rotation.x += 0.0f;
+	mesh.rotation.y += 0.0f;
+	mesh.rotation.z += 0.0f;
 
 	//mesh.translate.x += 0.02f;
 	//mesh.translate.y += -0.01f;
 	mesh.translate.z = (-1) * (camera_position.z);
 	mesh.scale.x = 2;
 	mesh.scale.y = 2;
-	mesh.scale.z = 1;
+	mesh.scale.z = 2;
 	
 	mat4_t scaleMatrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 	mat4_t translateMatrix = mat4_make_translate(mesh.translate.x, mesh.translate.y, mesh.translate.z);
@@ -184,6 +184,9 @@ void update(void) {
 		for (int j = 0; j < 3; j++) {
 			// Project the current vertex
 			projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
+			// Y value of the model ( lower Y -> bottom of the model, higher Y -> top of the model BUT our raster grid is the opposite
+			// lower value is top of the screen and higher value is bottom, therefore, we need to invert/change sign of y-value 0f model
+			projected_points[j].y *= -1;
 
 			// Scale into the view
 			projected_points[j].x *= (window_width / 2.0);
@@ -192,6 +195,9 @@ void update(void) {
 			// Translate the projected points to the middle of the screen
 			projected_points[j].x += (window_width / 2.0);
 			projected_points[j].y += (window_height / 2.0);
+
+			
+
 		}
 
 		// Calculate the average depth for each face based on the vertices after transformation

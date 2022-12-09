@@ -197,7 +197,7 @@ void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t bord
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
 	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float) (y2 - y0)) + x0;
 	int My = y1;
-	draw_triangle(triangle, borderColor, true);
+	draw_triangle(triangle, borderColor, false);
 	triangle_t flatBottom = {
 	.points[0].x = x0, .points[0].y = y0,
 	.points[1].x = x1, .points[1].y = y1,
