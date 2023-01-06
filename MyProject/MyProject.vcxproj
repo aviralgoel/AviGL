@@ -33,6 +33,7 @@
     <ClCompile Include="src\Main.c" />
     <ClCompile Include="src\matrix.c" />
     <ClCompile Include="src\mesh.c" />
+    <ClCompile Include="src\texture.c" />
     <ClCompile Include="src\triangle.c" />
     <ClCompile Include="src\util.c" />
     <ClCompile Include="src\vector.c" />
@@ -43,6 +44,7 @@
     <ClInclude Include="src\light.h" />
     <ClInclude Include="src\matrix.h" />
     <ClInclude Include="src\mesh.h" />
+    <ClInclude Include="src\texture.h" />
     <ClInclude Include="src\triangle.h" />
     <ClInclude Include="src\util.h" />
     <ClInclude Include="src\vector.h" />

@@ -11,7 +11,10 @@
 #include "util.h"
 #include "matrix.h"
 #include "light.h"
+#include "texture.h"
 #pragma endregion
+
+void render(void);
 
 // Function Prototypes
 void free_resources(void);
@@ -26,12 +29,43 @@ mat4_t proj_matrix;
 bool is_running = false;
 int previous_frame_time = 0;
 // Rendering mode
-enum renderMode { WireframePure, WireframeWithVertex, FilledTriangles, WireframeWithFilledTriangles};
+enum renderMode { WireframePure, WireframeWithVertex, FilledTriangles, WireframeWithFilledTriangles, 
+	RENDER_TEXTURED,
+	RENDER_TEXTURED_WIRE};
 bool backfaceCulling = false;
 bool paintersAlgorithm = true;
 int scaleSign = 1;
 enum  renderMode mode;
 
+void playground()
+{
+	float x0, x1, x2, y0, y1, y2;
+	x0 = 6; 	x1 = 3; 	x2 = 9;
+	y0 = 1; 	y1 = 4; 	y2 = 7;
+
+	
+	printf("Flat Bottom Triangle\n");
+	//cout << "Flat Bottom Triangle\n";
+	float inv_slope_1 = 0;
+	float inv_slope_2 = 0;
+	float My = y1;
+	float Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+	printf("Mx: %f\t My: %f\n", Mx, My);
+	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
+	if (y2 - y0 != 0) inv_slope_2 = (float)(Mx - x0) / abs(My - y0);
+
+	printf("inv_slope1: %f\t inv_slope2: %f\t\n", inv_slope_1, inv_slope_2);
+
+	if (y1 - y0 != 0) {
+		for (int y = y0; y <= y1; y++) {
+			printf("current y: %d\n", y);
+			int x_start = x1 + (y - y1) * inv_slope_1;
+			int x_end = x0 + (y - y0) * inv_slope_2;
+			printf("x_start: %d and x_end: %d\n", x_start, x_end);
+		}
+	}
+
+}
 
 void setup(void) {
 	
@@ -48,8 +82,8 @@ void setup(void) {
 		window_width,
 		window_height
 	);
-	//load_cube_mesh_data();
-	load_obj_file_data("./assets/f22.obj");
+	load_cube_mesh_data();
+	//load_obj_file_data("./assets/f22.obj");
 
 	//rendering mode
 	enum  renderMode mode = WireframePure;
@@ -60,6 +94,10 @@ void setup(void) {
 	float znear = 10;
 	float zfar = 100.0;
 	proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
+	
+
+	// load the texture data from static uint8 array and cast it into uint32
+	mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
 
 }
 
@@ -87,12 +125,19 @@ void process_input(void) {
 			mode = FilledTriangles;
 		if (event.key.keysym.sym == SDLK_4)
 			mode = WireframeWithFilledTriangles;
+		// enable texturing
+		if (event.key.keysym.sym == SDLK_5)
+			mode = RENDER_TEXTURED;
+		// enable texture and wiring
+		if (event.key.keysym.sym == SDLK_6)
+			mode = RENDER_TEXTURED_WIRE;
 		if (event.key.keysym.sym == SDLK_p)
 			paintersAlgorithm = !paintersAlgorithm;
 		if (event.key.keysym.sym == SDLK_l)
 			scaleSign = -1;
 		if (event.key.keysym.sym == SDLK_m)
 			scaleSign = 1;
+
 		break;
 	}
 }
@@ -109,7 +154,7 @@ void update(void) {
 	}
 	previous_frame_time = SDL_GetTicks();
 
-	mesh.rotation.x += 0.0f;
+	mesh.rotation.x += 0.04f;
 	mesh.rotation.y += 0.0f;
 	mesh.rotation.z += 0.0f;
 
@@ -209,6 +254,11 @@ void update(void) {
 				{ projected_points[1].x, projected_points[1].y },
 				{ projected_points[2].x, projected_points[2].y },
 			},
+			.texcoords = {
+				{mesh_face.a_uv.u, mesh_face.a_uv.v},
+				{mesh_face.b_uv.u, mesh_face.b_uv.v},
+				{mesh_face.c_uv.u, mesh_face.c_uv.v},
+		},
 			.color = mesh_face.color,
 			.avg_depth = avg_depth
 		};
@@ -219,20 +269,6 @@ void update(void) {
 	int remainingFaces = array_length(triangles_to_render);
 	
 	quicksort_triangles(triangles_to_render, 0, remainingFaces - 1);
-
-	// Sort by Z buffer
-	//for (int i = 0; i < remainingFaces; i++) {
-	//	for (int j = i; j < remainingFaces; j++) {
-	//		if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth) {
-	//			// Swap the triangles positions in the array
-	//			triangle_t temp = triangles_to_render[i];
-	//			triangles_to_render[i] = triangles_to_render[j];
-	//			triangles_to_render[j] = temp;
-	//		}
-	//	}
-	//}
-		
-
 }
 
 void render(void) {
@@ -257,6 +293,14 @@ void render(void) {
 		else if (mode == FilledTriangles)
 		{
 			draw_triangle_filled(triangle, PURPLE, PURPLE);
+		}
+		else if (mode == RENDER_TEXTURED)
+		{
+			draw_triangle_textured(triangle, false, mesh_texture);
+		}
+		else if (mode == RENDER_TEXTURED_WIRE)
+		{
+			draw_triangle_textured(triangle, true, mesh_texture);
 		}
 		
 	}

@@ -42,6 +42,9 @@ void draw_triangle(triangle_t t, uint32_t color, bool showVertices);
 void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t borderColor);
 void fill_flat_bottom(triangle_t flatBottom, uint32_t color);
 void fill_flat_top(triangle_t flatBottom, uint32_t color);
+void draw_triangle_textured(triangle_t triangle, bool wireframe, uint32_t* texture);
+void fill_flatTop_textured(int y2, int y1, int x2, int x1, int y0, int x0);
+void fill_flatBottom_textured(int y1, int y0, int x1, int x0, int y2, int x2);
 #pragma endregion Triangle specific drawing methods
 void render_color_buffer(void); 
 void clear_color_buffer(uint32_t color);

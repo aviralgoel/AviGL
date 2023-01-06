@@ -229,7 +229,7 @@ void fill_flat_bottom(triangle_t triangle, uint32_t color)
 	int x0, x1, x2, y0, y1, y2;
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
-
+	
 	/* Note to self:
 	Definition of slope: rise/run => (another iterpretation) how much Y changes if change in x = 1
 	Definition of (slope)^-1 => run/rise => (another interpretation) how much X changes if change in y = 1 */
@@ -262,5 +262,93 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 		draw_line(x_start, i, x_end, i, color);
 		x_start -= invSlope2;
 		x_end -= invSlope1;
+	}
+}
+
+void draw_triangle_textured(triangle_t triangle, bool wireframe, uint32_t* texture)
+{	
+
+	// sort the vertices in top to bottom order
+	// such that points[0] is the top most point in the triangle
+	triangle = sortVertsByY(triangle);
+	// coordinates of vertices in pixel/screen space
+	int x0, x1, x2, y0, y1, y2;
+	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
+	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
+	// texel coordinates of vertices
+	float u0, u1, u2, v0, v1, v2;
+	u0 = triangle.texcoords[0].u; u1 = triangle.texcoords[1].u; u2 = triangle.texcoords[2].u;
+	v0 = triangle.texcoords[0].v; v1 = triangle.texcoords[1].v; v2 = triangle.texcoords[2].v;
+	//draw_triangle(triangle, YELLOW, false);
+	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float)(y2 - y0)) + x0;
+	int My = y1;
+
+	triangle_t flatBottom = {
+	.points[0].x = x0, .points[0].y = y0,
+	.points[1].x = x1, .points[1].y = y1,
+	.points[2].x = Mx, .points[2].y = My };
+	triangle_t flatTop = {
+	.points[0].x = x1, .points[0].y = y1,
+	.points[1].x = x2, .points[1].y = y2,
+	.points[2].x = Mx, .points[2].y = My };
+
+	x0 = flatBottom.points[0].x; 	x2 = flatBottom.points[1].x; 	x1 = flatBottom.points[2].x;
+	y0 = flatBottom.points[0].y; 	y2 = flatBottom.points[1].y; 	y1 = flatBottom.points[2].y;
+
+	fill_flatBottom_textured(y1, y0, x1, x0, y2, x2);
+	x0 = flatTop.points[0].x; 	x2 = flatTop.points[1].x; 	x1 = flatTop.points[2].x;
+	y0 = flatTop.points[0].y; 	y2 = flatTop.points[1].y; 	y1 = flatTop.points[2].y;
+
+	fill_flatTop_textured(y2, y1, x2, x1, y0, x0);
+
+}
+
+void fill_flatTop_textured(int y2, int y1, int x2, int x1, int y0, int x0)
+{
+	float inv_slope_1 = 0;
+	float inv_slope_2 = 0;
+
+	if (y2 - y1 != 0) inv_slope_1 = (float)(x2 - x1) / abs(y2 - y1);
+	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
+
+	if (y2 - y1 != 0) {
+		for (int y = y1; y <= y2; y++) {
+			int x_start = x1 + (y - y1) * inv_slope_1;
+			int x_end = x0 + (y - y0) * inv_slope_2;
+
+			if (x_end < x_start) {
+				swap(x_start, x_end); // swap if x_start is to the right of x_end
+			}
+
+			for (int x = x_start; x < x_end; x++) {
+				/// Draw our pixel with a custom color
+				draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? PURPLE : RED);
+			}
+		}
+	}
+}
+
+void fill_flatBottom_textured(int y1, int y0, int x1, int x0, int y2, int x2)
+{
+	float inv_slope_1 = 0;
+	float inv_slope_2 = 0;
+
+	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
+	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
+
+	if (y1 - y0 != 0) {
+		for (int y = y0; y <= y1; y++) {
+			int x_start = x1 + (y - y1) * inv_slope_1;
+			int x_end = x0 + (y - y0) * inv_slope_2;
+
+			if (x_end < x_start) {
+				swap(x_start, x_end); // swap if x_start is to the right of x_end
+			}
+
+			for (int x = x_start; x < x_end; x++) {
+				// Draw our pixel with a custom color
+				draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? RED : PURPLE);
+			}
+		}
 	}
 }
