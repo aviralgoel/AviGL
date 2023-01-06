@@ -67,6 +67,34 @@ void draw_pixel(int x, int y, uint32_t color) {
 	}
 }
 
+void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
+{
+	vec2_t point_a = { .x = t.points[0].x, .y = t.points[0].y};
+	vec2_t point_b = { .x = t.points[1].x, .y = t.points[1].y };
+	vec2_t point_c = { .x = t.points[2].x, .y = t.points[2].y };
+	vec2_t point_p = { .x = pixelX, .y = pixelY };
+	// texel coordinates of vertices
+	float u0, u1, u2, v0, v1, v2;
+	u0 = t.texcoords[0].u; u1 = t.texcoords[1].u; u2 = t.texcoords[2].u;
+	v0 = t.texcoords[0].v; v1 = t.texcoords[1].v; v2 = t.texcoords[2].v;
+
+	vec3_t barycentric_coordinates = barycentric_weights(point_a,point_b,point_c, point_p);
+
+	float alpha = barycentric_coordinates.x;
+	float beta = barycentric_coordinates.y;
+	float gamma = barycentric_coordinates.z;
+
+	float interpolated_u = u0 * alpha + u1 * beta + u2 * gamma;
+	float interpolated_v = v0 * alpha + v1 * beta + v2 * gamma;
+
+	int tex_x = abs((int)(interpolated_u * (texture_width-1)));
+	int tex_y = abs((int)(interpolated_v * (texture_height-1)));
+
+	int textureIndex = ((texture_width * tex_y) + tex_x) % (texture_width * texture_height);
+
+	draw_pixel(pixelX, pixelY, texture[textureIndex]);
+}
+
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -265,48 +293,44 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 	}
 }
 
-void draw_triangle_textured(triangle_t triangle, bool wireframe, uint32_t* texture)
-{	
-
-	// sort the vertices in top to bottom order
-	// such that points[0] is the top most point in the triangle
+void draw_triangle_textured(triangle_t triangle, uint32_t* texture)
+{
 	triangle = sortVertsByY(triangle);
 	// coordinates of vertices in pixel/screen space
 	int x0, x1, x2, y0, y1, y2;
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
-	// texel coordinates of vertices
-	float u0, u1, u2, v0, v1, v2;
-	u0 = triangle.texcoords[0].u; u1 = triangle.texcoords[1].u; u2 = triangle.texcoords[2].u;
-	v0 = triangle.texcoords[0].v; v1 = triangle.texcoords[1].v; v2 = triangle.texcoords[2].v;
-	//draw_triangle(triangle, YELLOW, false);
-	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float)(y2 - y0)) + x0;
-	int My = y1;
-
-	triangle_t flatBottom = {
-	.points[0].x = x0, .points[0].y = y0,
-	.points[1].x = x1, .points[1].y = y1,
-	.points[2].x = Mx, .points[2].y = My };
-	triangle_t flatTop = {
-	.points[0].x = x1, .points[0].y = y1,
-	.points[1].x = x2, .points[1].y = y2,
-	.points[2].x = Mx, .points[2].y = My };
-
-	x0 = flatBottom.points[0].x; 	x2 = flatBottom.points[1].x; 	x1 = flatBottom.points[2].x;
-	y0 = flatBottom.points[0].y; 	y2 = flatBottom.points[1].y; 	y1 = flatBottom.points[2].y;
-
-	fill_flatBottom_textured(y1, y0, x1, x0, y2, x2);
-	x0 = flatTop.points[0].x; 	x2 = flatTop.points[1].x; 	x1 = flatTop.points[2].x;
-	y0 = flatTop.points[0].y; 	y2 = flatTop.points[1].y; 	y1 = flatTop.points[2].y;
-
-	fill_flatTop_textured(y2, y1, x2, x1, y0, x0);
-
-}
-
-void fill_flatTop_textured(int y2, int y1, int x2, int x1, int y0, int x0)
-{
+	///////////////////////////////////////////////////////
+	   // Render the upper part of the triangle (flat-bottom)
+	   ///////////////////////////////////////////////////////
 	float inv_slope_1 = 0;
 	float inv_slope_2 = 0;
+	draw_triangle(triangle, WHITE, false);
+	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
+	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
+
+	if (y1 - y0 != 0) {
+		for (int y = y0; y <= y1; y++) {
+			int x_start = x1 + (y - y1) * inv_slope_1;
+			int x_end = x0 + (y - y0) * inv_slope_2;
+
+			if (x_end < x_start) {
+				swap(x_start, x_end); // swap if x_start is to the right of x_end
+			}
+
+			for (int x = x_start; x < x_end; x++) {
+				// Draw our pixel with a custom color
+				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
+				draw_texel(x, y, triangle, texture);
+			}
+		}
+	}
+
+	///////////////////////////////////////////////////////
+	// Render the bottom part of the triangle (flat-top)
+	///////////////////////////////////////////////////////
+	inv_slope_1 = 0;
+	inv_slope_2 = 0;
 
 	if (y2 - y1 != 0) inv_slope_1 = (float)(x2 - x1) / abs(y2 - y1);
 	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
@@ -322,33 +346,53 @@ void fill_flatTop_textured(int y2, int y1, int x2, int x1, int y0, int x0)
 
 			for (int x = x_start; x < x_end; x++) {
 				/// Draw our pixel with a custom color
-				draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? PURPLE : RED);
+				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
+				draw_texel(x, y, triangle, texture);
 			}
 		}
 	}
 }
 
-void fill_flatBottom_textured(int y1, int y0, int x1, int x0, int y2, int x2)
+vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p)
 {
-	float inv_slope_1 = 0;
-	float inv_slope_2 = 0;
+	vec2_t ac = vec2_subtract(c, a);
+	vec2_t ab = vec2_subtract(b, a);
+	vec2_t pc = vec2_subtract(c, p);
+	vec2_t pb = vec2_subtract(b, p);
+	vec2_t ap = vec2_subtract(p, a);
 
-	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
-	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
+	// area using cross product || AC x AB ||
+	float area_of_parallelogram = (ac.x * ab.y) - (ac.y * ab.x);
+	// || PC x PB || / areaOfParallelogram
+	float alpha = ((pc.x * pb.y) - (pc.y * pb.x))/area_of_parallelogram;
+	// || ACxAP || / areaOfParallelogram
+	float beta = ((ac.x * ap.y) - (ac.y * ap.x))/area_of_parallelogram;
 
-	if (y1 - y0 != 0) {
-		for (int y = y0; y <= y1; y++) {
-			int x_start = x1 + (y - y1) * inv_slope_1;
-			int x_end = x0 + (y - y0) * inv_slope_2;
+	float gamma = 1 - alpha - beta;
 
-			if (x_end < x_start) {
-				swap(x_start, x_end); // swap if x_start is to the right of x_end
-			}
+	vec3_t weights = { .x = alpha, .y = beta, .z = gamma };
 
-			for (int x = x_start; x < x_end; x++) {
-				// Draw our pixel with a custom color
-				draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? RED : PURPLE);
-			}
-		}
-	}
+	return weights;
+	
+}
+vec3_t barycentric_weights_my(vec2_t a, vec2_t b, vec2_t c, vec2_t p)
+{
+	vec2_t pb = vec2_subtract(b, p);
+	vec2_t pa = vec2_subtract(a, p);
+	vec2_t pc = vec2_subtract(c, p);
+	vec2_t ac = vec2_subtract(c, a);
+	vec2_t ab = vec2_subtract(b, a);
+	float area_of_parallelogram = (ac.x * ab.y) - (ac.y * ab.x);
+
+	// || PC x PB || / areaOfParallelogram
+	float alpha = ((pb.x * pa.y) - (pb.y * pa.x)) / area_of_parallelogram;
+	// || ACxAP || / areaOfParallelogram
+	float beta = ((pc.x * pb.y) - (pc.y * pb.x)) / area_of_parallelogram;
+
+	float gamma = 1 - alpha - beta;
+
+	vec3_t weights = { .x = alpha, .y = beta, .z = gamma };
+
+	return weights;
+
 }

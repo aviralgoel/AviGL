@@ -154,9 +154,9 @@ void update(void) {
 	}
 	previous_frame_time = SDL_GetTicks();
 
-	mesh.rotation.x += 0.04f;
-	mesh.rotation.y += 0.0f;
-	mesh.rotation.z += 0.0f;
+	mesh.rotation.x += 0.01f;
+	mesh.rotation.y += 0.01f;
+	mesh.rotation.z += 0.01f;
 
 	//mesh.translate.x += 0.02f;
 	//mesh.translate.y += -0.01f;
@@ -296,11 +296,11 @@ void render(void) {
 		}
 		else if (mode == RENDER_TEXTURED)
 		{
-			draw_triangle_textured(triangle, false, mesh_texture);
+			draw_triangle_textured(triangle, mesh_texture);
 		}
 		else if (mode == RENDER_TEXTURED_WIRE)
 		{
-			draw_triangle_textured(triangle, true, mesh_texture);
+			draw_triangle_textured(triangle, mesh_texture);
 		}
 		
 	}
