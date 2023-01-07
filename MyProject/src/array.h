@@ -11,4 +11,3 @@
 void* array_hold(void* array, int count, int item_size);
 int array_length(void* array); // return length of array
 void array_free(void* array); // free the memory allocated when array is deleted
-

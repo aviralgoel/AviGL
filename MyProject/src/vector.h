@@ -1,27 +1,23 @@
-#ifndef VECTOR_H
-#define VECTOR_H
+#pragma once
 
 typedef struct {
-    float x;
-    float y;
+	float x;
+	float y;
 } vec2_t;
 
 typedef struct {
-    float x;
-    float y;
-    float z;
+	float x;
+	float y;
+	float z;
 } vec3_t;
 
 typedef struct {
 	float x;
 	float y;
 	float z;
-    float w;
+	float w;
 } vec4_t;
 
-vec3_t vec3_rotate_x(vec3_t v, float angle);
-vec3_t vec3_rotate_y(vec3_t v, float angle);
-vec3_t vec3_rotate_z(vec3_t v, float angle);
 #pragma region Vector TWO D Functions
 /// <summary>
 /// returns the magnitude of a 2D vector
@@ -36,7 +32,7 @@ vec2_t vec2_divide(vec2_t a, float s);
 void vec2_normalize(vec2_t* v);
 float vec2_dotProduct(vec2_t a, vec2_t b);
 
-#pragma endregion Vector TWO D Functions
+#pragma endregion
 #pragma region Vector THREE D Functions
 /// <summary>
 /// returns the magnitude of a 3D vector
@@ -52,10 +48,10 @@ vec3_t vec3_crossProduct(vec3_t a, vec3_t b);
 void vec3_normalize(vec3_t* v);
 float vec3_dotProduct(vec3_t a, vec3_t b);
 vec3_t vec3_from_vec4(vec4_t vec4);
-#pragma endregion Vector THREE D Functions
-
+vec3_t vec3_rotate_x(vec3_t v, float angle);
+vec3_t vec3_rotate_y(vec3_t v, float angle);
+vec3_t vec3_rotate_z(vec3_t v, float angle);
+#pragma endregion
 #pragma region Vector Four D Functions
 vec4_t vec4_from_vec3(vec3_t vec3);
-#pragma endregion Vector Four D Functions
-
-#endif
+#pragma endregion

@@ -27,7 +27,7 @@ mat4_t mat4_make_rotation_z(const float theta)
 	|	0		 0     0 1 |
 */
 	mat4_t m = mat4_make_identity();
-	m.m[0][0] = cos(theta) ; m.m[0][1] = (-1)*sin(theta);
+	m.m[0][0] = cos(theta); m.m[0][1] = (-1) * sin(theta);
 	m.m[1][0] = sin(theta); m.m[1][1] = cos(theta);
 	return m;
 }
@@ -41,7 +41,7 @@ mat4_t mat4_make_rotation_y(const float theta)
 */
 	mat4_t m = mat4_make_identity();
 	m.m[0][0] = cos(theta); m.m[0][2] = sin(theta);
-	m.m[2][0] = (-1)*sin(theta); m.m[2][2] = cos(theta);
+	m.m[2][0] = (-1) * sin(theta); m.m[2][2] = cos(theta);
 	return m;
 }
 mat4_t mat4_make_rotation_x(const float theta)
@@ -70,14 +70,14 @@ mat4_t mat4_make_scale(float sx, float sy, float sz)
 	m.m[0][0] = sx; m.m[1][1] = sy; m.m[2][2] = sz;
 	return m;
 }
-
+// Takes in world space and spits out image space (As far as I understand)
 mat4_t mat4_make_perspective(float fov, float aspect, float znear, float zfar) {
 	// | 1/tan(fov/2)*(aspect)             0              0                 0 |
 	// |                  0  1/tan(fov/2)              0                 0 |
 	// |                  0             0     zf/(zf-zn)  (-zf*zn)/(zf-zn) |
 	// |                  0             0              1                 0 |
 	mat4_t m = { {{ 0 }} };
-	m.m[0][0] = (1 / (tan(fov / 2)*aspect));
+	m.m[0][0] = (1 / (tan(fov / 2) * aspect));
 	m.m[1][1] = 1 / tan(fov / 2);
 	m.m[2][2] = zfar / (zfar - znear);
 	m.m[2][3] = (-zfar * znear) / (zfar - znear);

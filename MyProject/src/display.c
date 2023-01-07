@@ -7,6 +7,7 @@ SDL_Texture* color_buffer_texture = NULL;
 int window_width = 800;
 int window_height = 600;
 
+// initialized the window wizard for the renderer
 bool initialize_window(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		fprintf(stderr, "Error initializing SDL.\n");
@@ -42,7 +43,27 @@ bool initialize_window(void) {
 
 	return true;
 }
-
+void render_color_buffer(void) {
+	SDL_UpdateTexture(
+		color_buffer_texture,
+		NULL,
+		color_buffer,
+		(int)(window_width * sizeof(uint32_t))
+	);
+	SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
+}
+void clear_color_buffer(uint32_t color) {
+	for (int y = 0; y < window_height; y++) {
+		for (int x = 0; x < window_width; x++) {
+			color_buffer[(window_width * y) + x] = color;
+		}
+	}
+}
+void destroy_window(void) {
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+}
 void draw_grid(void) {
 	for (int y = 0; y < window_height; y += 10) {
 		for (int x = 0; x < window_width; x += 10) {
@@ -60,41 +81,46 @@ void draw_circle(float radius, uint32_t color)
 		draw_line(x, y, x1, y1, color);
 	}
 }
-
+// paints a pixel on the screen with color
 void draw_pixel(int x, int y, uint32_t color) {
 	if (x >= 0 && x < window_width && y >= 0 && y < window_height) {
 		color_buffer[(window_width * y) + x] = color;
 	}
 }
-
+// maps a pixel coordinate to the texture image using u,v of a given triangle and the pixel inside it.
 void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 {
-	vec2_t point_a = { .x = t.points[0].x, .y = t.points[0].y};
+	// the three vertices of the triangle and the Point P where texture needs to be determined.
+	vec2_t point_a = { .x = t.points[0].x, .y = t.points[0].y };
 	vec2_t point_b = { .x = t.points[1].x, .y = t.points[1].y };
 	vec2_t point_c = { .x = t.points[2].x, .y = t.points[2].y };
 	vec2_t point_p = { .x = pixelX, .y = pixelY };
+
 	// texel coordinates of vertices
 	float u0, u1, u2, v0, v1, v2;
 	u0 = t.texcoords[0].u; u1 = t.texcoords[1].u; u2 = t.texcoords[2].u;
 	v0 = t.texcoords[0].v; v1 = t.texcoords[1].v; v2 = t.texcoords[2].v;
 
-	vec3_t barycentric_coordinates = barycentric_weights(point_a,point_b,point_c, point_p);
-
+	// barycentric coordinates of point P
+	vec3_t barycentric_coordinates = barycentric_weights(point_a, point_b, point_c, point_p);
 	float alpha = barycentric_coordinates.x;
 	float beta = barycentric_coordinates.y;
 	float gamma = barycentric_coordinates.z;
 
+	// what will be the u,v value of point P, given that we have u,v value of the vertices of the triangle
 	float interpolated_u = u0 * alpha + u1 * beta + u2 * gamma;
 	float interpolated_v = v0 * alpha + v1 * beta + v2 * gamma;
 
-	int tex_x = abs((int)(interpolated_u * (texture_width-1)));
-	int tex_y = abs((int)(interpolated_v * (texture_height-1)));
+	// based on the u,v value of P, fetch which texture color needs to be here from the texture
+	// u,v values are between [0,1] and texture is 64x64, hence scale it.
+	int tex_x = abs((int)(interpolated_u * (texture_width - 1)));
+	int tex_y = abs((int)(interpolated_v * (texture_height - 1)));
 
+	// now we know exact texture color location in the texture image for Point P, let's fetch it
 	int textureIndex = ((texture_width * tex_y) + tex_x) % (texture_width * texture_height);
-
+	// and draw pixel
 	draw_pixel(pixelX, pixelY, texture[textureIndex]);
 }
-
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -103,16 +129,6 @@ void draw_rect(int x, int y, int width, int height, uint32_t color) {
 			draw_pixel(current_x, current_y, color);
 		}
 	}
-}
-
-void render_color_buffer(void) {
-	SDL_UpdateTexture(
-		color_buffer_texture,
-		NULL,
-		color_buffer,
-		(int)(window_width * sizeof(uint32_t))
-	);
-	SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
 }
 /// <summary>
 /// Digital differential analyzer line drawing algorithm
@@ -152,26 +168,26 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color)
 void draw_line_BLA(int x0, int y0, int x1, int y1, uint32_t color)
 {
 	int dx = abs(x1 - x0);
-	int sx = x0 < x1 ? 1 : -1; 
+	int sx = x0 < x1 ? 1 : -1;
 	int dy = -abs(y1 - y0);
 	int sy = y0 < y1 ? 1 : -1;
 	int err = dx + dy;
 	int e2 = 0;
 
-	for (;;) { 
+	for (;;) {
 		draw_pixel(x0, y0, color);
 		if (x0 == x1 && y0 == y1) break; // end condition
 		e2 = err << 1;
-		if (e2 >= dy) 
-		{ 
-			err += dy; 
-			x0 += sx; 
-		} 
-		else if (e2 <= dx) 
-		{ 
-			err += dx; 
+		if (e2 >= dy)
+		{
+			err += dy;
+			x0 += sx;
+		}
+		else if (e2 <= dx)
+		{
+			err += dx;
 			y0 += sy;
-		} 
+		}
 	}
 }
 /// <summary>
@@ -180,56 +196,32 @@ void draw_line_BLA(int x0, int y0, int x1, int y1, uint32_t color)
 /// <param name="triangle">struct for triangle coordinates</param>
 /// <param name="color">wire frame color of triangle</param>
 /// <param name="showVertices">true if vertices should be highlighted in GREEN</param>
-
-
-//void draw_filled_triangle(triangle_t triangle, uint32_t color)
-//{	
-//	triangle = sortVertsByY(triangle);
-//	
-//}
-
-void clear_color_buffer(uint32_t color) {
-	for (int y = 0; y < window_height; y++) {
-		for (int x = 0; x < window_width; x++) {
-			color_buffer[(window_width * y) + x] = color;
-		}
-	}
-}
-
-void destroy_window(void) {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-}
-
 void draw_triangle(triangle_t triangle, uint32_t color, bool showVertex)
 {
 	draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, color);
 	draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, color);
 	draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y, color);
-	if(showVertex)
+	if (showVertex)
 	{
 		draw_rect(triangle.points[0].x, triangle.points[0].y, 4, 4, GREEN);
 		draw_rect(triangle.points[1].x, triangle.points[1].y, 4, 4, GREEN);
 		draw_rect(triangle.points[2].x, triangle.points[2].y, 4, 4, GREEN);
 	}
 }
-
 void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t borderColor)
-{	
-	
+{
 	triangle = sortVertsByY(triangle);
 	// find the coordinates of line that divides the triangle into flat bottom and flat top
 	int x0, x1, x2, y0, y1, y2;
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
-	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float) (y2 - y0)) + x0;
+	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float)(y2 - y0)) + x0;
 	int My = y1;
 	draw_triangle(triangle, borderColor, false);
 	triangle_t flatBottom = {
 	.points[0].x = x0, .points[0].y = y0,
 	.points[1].x = x1, .points[1].y = y1,
-	.points[2].x = Mx, .points[2].y = My};
+	.points[2].x = Mx, .points[2].y = My };
 	triangle_t flatTop = {
 	.points[0].x = x1, .points[0].y = y1,
 	.points[1].x = x2, .points[1].y = y2,
@@ -247,34 +239,27 @@ void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t bord
 		fill_flat_bottom(flatBottom, fillColor);
 		fill_flat_top(flatTop, fillColor);
 	}
-
-
 }
-
 void fill_flat_bottom(triangle_t triangle, uint32_t color)
 {
-	
 	int x0, x1, x2, y0, y1, y2;
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
-	
+
 	/* Note to self:
 	Definition of slope: rise/run => (another iterpretation) how much Y changes if change in x = 1
 	Definition of (slope)^-1 => run/rise => (another interpretation) how much X changes if change in y = 1 */
-	float invSlope1 = (float)(x0 - x1) / (float)(y0 - y1) ;
-	float invSlope2 = (float)(x0 - x2) / (float)(y0 - y2) ;
+	float invSlope1 = (float)(x0 - x1) / (float)(y0 - y1);
+	float invSlope2 = (float)(x0 - x2) / (float)(y0 - y2);
 	float x_start = x0;
 	float x_end = x0;
 	for (int i = y0; i <= y1; i++)
-	{	
+	{
 		draw_line(x_start, i, x_end, i, color);
 		x_start += invSlope1;
-		x_end +=  invSlope2;
+		x_end += invSlope2;
 	}
-
-
 }
-
 void fill_flat_top(triangle_t triangle, uint32_t color)
 {
 	int x0, x1, x2, y0, y1, y2;
@@ -282,7 +267,7 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
 	float invSlope1 = (float)(x0 - x1) / (float)(y0 - y1);
 	float invSlope2 = (float)(x2 - x1) / (float)(y2 - y1);
-	
+
 	float x_start = x1;
 	float x_end = x1;
 	for (int i = y1; i >= y0; i--)
@@ -292,7 +277,6 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 		x_end -= invSlope1;
 	}
 }
-
 void draw_triangle_textured(triangle_t triangle, uint32_t* texture)
 {
 	triangle = sortVertsByY(triangle);
@@ -352,7 +336,6 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture)
 		}
 	}
 }
-
 vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p)
 {
 	vec2_t ac = vec2_subtract(c, a);
@@ -364,35 +347,13 @@ vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p)
 	// area using cross product || AC x AB ||
 	float area_of_parallelogram = (ac.x * ab.y) - (ac.y * ab.x);
 	// || PC x PB || / areaOfParallelogram
-	float alpha = ((pc.x * pb.y) - (pc.y * pb.x))/area_of_parallelogram;
+	float alpha = ((pc.x * pb.y) - (pc.y * pb.x)) / area_of_parallelogram;
 	// || ACxAP || / areaOfParallelogram
-	float beta = ((ac.x * ap.y) - (ac.y * ap.x))/area_of_parallelogram;
+	float beta = ((ac.x * ap.y) - (ac.y * ap.x)) / area_of_parallelogram;
 
 	float gamma = 1 - alpha - beta;
 
 	vec3_t weights = { .x = alpha, .y = beta, .z = gamma };
 
 	return weights;
-	
-}
-vec3_t barycentric_weights_my(vec2_t a, vec2_t b, vec2_t c, vec2_t p)
-{
-	vec2_t pb = vec2_subtract(b, p);
-	vec2_t pa = vec2_subtract(a, p);
-	vec2_t pc = vec2_subtract(c, p);
-	vec2_t ac = vec2_subtract(c, a);
-	vec2_t ab = vec2_subtract(b, a);
-	float area_of_parallelogram = (ac.x * ab.y) - (ac.y * ab.x);
-
-	// || PC x PB || / areaOfParallelogram
-	float alpha = ((pb.x * pa.y) - (pb.y * pa.x)) / area_of_parallelogram;
-	// || ACxAP || / areaOfParallelogram
-	float beta = ((pc.x * pb.y) - (pc.y * pb.x)) / area_of_parallelogram;
-
-	float gamma = 1 - alpha - beta;
-
-	vec3_t weights = { .x = alpha, .y = beta, .z = gamma };
-
-	return weights;
-
 }
