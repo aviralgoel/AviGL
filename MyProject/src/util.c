@@ -1,4 +1,5 @@
 #include "util.h"
+#define PI 3.1415926 
 float normalizeInRange(float value, float max, float min)
 {
 	float result = (value - min) / (max - min);
@@ -39,15 +40,13 @@ int sorter_descending(const void* first_arg, const void* second_arg)
 	}
 }
 
-
 float degreeToRadian(float degAngle)
 {
-	return (3.141592) * (degAngle / 180);
+	return (PI) * (degAngle / 180);
 }
 
 int partition_triangle_array(triangle_t arr[], int first_index, int last_index, float pivot)
 {
-
 	// Store a swap index
 	int i = first_index;
 
@@ -72,12 +71,10 @@ int partition_triangle_array(triangle_t arr[], int first_index, int last_index, 
 }
 
 void quicksort_triangles(triangle_t arr[], int first_index, int last_index)
-{	
+{
 	if (first_index >= last_index) return;
 	int pivot = arr[last_index].avg_depth;
 	int partition_index = partition_triangle_array(arr, first_index, last_index, pivot);
 	quicksort_triangles(arr, first_index, partition_index - 1);
 	quicksort_triangles(arr, partition_index + 1, last_index);
-		
-	
 }

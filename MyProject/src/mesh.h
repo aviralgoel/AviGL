@@ -21,5 +21,7 @@ typedef struct {
 	// NOTE: a face is a set of 3 array indices, where each element tells the index of vertex that forms that face
 } mesh_t;
 extern mesh_t mesh;
+
 void load_cube_mesh_data(void);
+// load obj models from storage
 void load_obj_file_data(char* filename);
