@@ -37,6 +37,12 @@ vec2_t vec2_add(vec2_t a, vec2_t b)
 	return result;
 }
 
+vec2_t vec2_from_vec4(vec2_t a)
+{
+	vec2_t result = { .x = a.x, .y = a.y };
+	return result;
+}
+
 vec2_t vec2_subtract(vec2_t a, vec2_t b)
 {
 	vec2_t result = { .x = a.x - b.x, .y = a.y - b.y };

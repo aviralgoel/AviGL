@@ -35,7 +35,7 @@ enum renderMode {
 	RENDER_TEXTURED,
 	RENDER_TEXTURED_WIRE
 };
-bool backfaceCulling = false;
+bool backfaceCulling = true;
 bool paintersAlgorithm = true;
 int scaleSign = 1;
 enum  renderMode mode;
@@ -59,8 +59,6 @@ void setup(void) {
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
-	backfaceCulling = true;
-	paintersAlgorithm = true;
 	float fov = degreeToRadian(60);
 	float aspect = (float)window_width / (float)window_height;
 	float znear = 10;
@@ -82,10 +80,6 @@ void process_input(void) {
 	case SDL_KEYDOWN:
 		if (event.key.keysym.sym == SDLK_ESCAPE)
 			is_running = false;
-		if (event.key.keysym.sym == SDLK_c)
-			backfaceCulling = true;
-		if (event.key.keysym.sym == SDLK_d)
-			backfaceCulling = false;
 		if (event.key.keysym.sym == SDLK_1)
 			mode = RENDER_WIREFRAME;
 		if (event.key.keysym.sym == SDLK_2)
@@ -102,10 +96,6 @@ void process_input(void) {
 			mode = RENDER_TEXTURED_WIRE;
 		if (event.key.keysym.sym == SDLK_p)
 			paintersAlgorithm = !paintersAlgorithm;
-		if (event.key.keysym.sym == SDLK_l)
-			scaleSign = -1;
-		if (event.key.keysym.sym == SDLK_m)
-			scaleSign = 1;
 
 		break;
 	}
@@ -123,9 +113,9 @@ void update(void) {
 	previous_frame_time = SDL_GetTicks();
 
 	// rotation per frame
-	mesh.rotation.x += 0.01f;
-	mesh.rotation.y += 0.01f;
-	mesh.rotation.z += 0.01f;
+	mesh.rotation.x += 0.00f;
+	mesh.rotation.y += 0.02f;
+	mesh.rotation.z += 0.00f;
 
 	// translation per frame
 	//mesh.translate.x += 0.02f;
@@ -227,9 +217,9 @@ void update(void) {
 
 		triangle_t projected_triangle = {
 			.points = {
-				{ projected_points[0].x, projected_points[0].y },
-				{ projected_points[1].x, projected_points[1].y },
-				{ projected_points[2].x, projected_points[2].y },
+				{ projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w },
+				{ projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w },
+				{ projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w },
 			},
 			.texcoords = {
 				{mesh_face.a_uv.u, mesh_face.a_uv.v},
