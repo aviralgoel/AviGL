@@ -26,6 +26,7 @@ typedef struct {
 /// <returns></returns>
 float vec2_magnitude(vec2_t v);
 vec2_t vec2_add(vec2_t a, vec2_t b);
+vec2_t vec2_from_vec4(vec2_t a);
 vec2_t vec2_subtract(vec2_t a, vec2_t b);
 vec2_t vec2_multiply(vec2_t a, float s);
 vec2_t vec2_divide(vec2_t a, float s);

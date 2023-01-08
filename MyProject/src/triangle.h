@@ -25,7 +25,7 @@ typedef struct {
 // triangle is a collection of 3 points (for position), color, avg depth for painter's algorithms
 // and set of uv coordinates of the 3 points
 typedef struct {
-	vec2_t points[3];
+	vec4_t points[3];
 	uint32_t color;
 	float avg_depth;
 	tex2_t texcoords[3];

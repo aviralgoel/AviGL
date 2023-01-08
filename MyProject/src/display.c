@@ -95,11 +95,14 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	vec2_t point_b = { .x = t.points[1].x, .y = t.points[1].y };
 	vec2_t point_c = { .x = t.points[2].x, .y = t.points[2].y };
 	vec2_t point_p = { .x = pixelX, .y = pixelY };
-
 	// texel coordinates of vertices
 	float u0, u1, u2, v0, v1, v2;
 	u0 = t.texcoords[0].u; u1 = t.texcoords[1].u; u2 = t.texcoords[2].u;
 	v0 = t.texcoords[0].v; v1 = t.texcoords[1].v; v2 = t.texcoords[2].v;
+	float z0, z2, z1, w0, w2, w1;
+	
+	z0 = t.points[0].z; 	z1 = t.points[1].z; 	z2 = t.points[2].z;
+	w0 = t.points[0].w; 	w1 = t.points[1].w; 	w2 = t.points[2].w;
 
 	// barycentric coordinates of point P
 	vec3_t barycentric_coordinates = barycentric_weights(point_a, point_b, point_c, point_p);
@@ -108,11 +111,23 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	float gamma = barycentric_coordinates.z;
 
 	// what will be the u,v value of point P, given that we have u,v value of the vertices of the triangle
-	float interpolated_u = u0 * alpha + u1 * beta + u2 * gamma;
-	float interpolated_v = v0 * alpha + v1 * beta + v2 * gamma;
+	float A = w1 * w2 * alpha; float B = w0 * w2 * beta; float C = w1 * w0 * gamma;
+	float interpolated_u = (u0*A + u1 * B + u2*C)/(A+B+C);
+	float interpolated_v = (v0*A + v1*B+v2*C)/(A+B+C);
+	
+
+	
+	// unoptimized naive way //
+	/*float interpolated_w_reciprocal;
+	interpolated_u = (u0/w0) * alpha + (u1/w1 ) * beta + (u2/w2 ) * gamma;
+	interpolated_v = (v0/w0 ) * alpha + (v1/w1 ) * beta + (v2/w2 ) * gamma;
+	interpolated_w_reciprocal = (1 / w0) * alpha + (1 / w1) * beta + (1 / w2) * gamma;
+	interpolated_u /= interpolated_w_reciprocal;
+	interpolated_v /= interpolated_w_reciprocal;*/
 
 	// based on the u,v value of P, fetch which texture color needs to be here from the texture
-	// u,v values are between [0,1] and texture is 64x64, hence scale it.
+	// u,v values are between [0,1] and texture is 64x64, hence scale it. [No Perspective Correction]
+	// u/w,v/w values are between [0,1] and texture is 64x64, hence scale it. [Perspective Correction]
 	int tex_x = abs((int)(interpolated_u * (texture_width - 1)));
 	int tex_y = abs((int)(interpolated_v * (texture_height - 1)));
 
@@ -279,14 +294,17 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 }
 void draw_triangle_textured(triangle_t triangle, uint32_t* texture)
 {
-	triangle = sortVertsByY(triangle);
+	triangle = sortVertsByY	(triangle);
 	// coordinates of vertices in pixel/screen space
 	int x0, x1, x2, y0, y1, y2;
+	float z0, z2, z1, w0, w2, w1;
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
+
+	
 	///////////////////////////////////////////////////////
-	   // Render the upper part of the triangle (flat-bottom)
-	   ///////////////////////////////////////////////////////
+	// Render the upper part of the triangle (flat-bottom)
+	///////////////////////////////////////////////////////
 	float inv_slope_1 = 0;
 	float inv_slope_2 = 0;
 	draw_triangle(triangle, WHITE, false);
