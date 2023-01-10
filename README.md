@@ -14,7 +14,7 @@ Things I've *IMPLEMENTED* so far...
 5. Scan Line Algorithm & Painters Algorithm
 6. 3D Matrix Transformation (World Matrix, Perspective Projection Matrix, etc.)
 7. Directional Lights and Flat Shading
-8. Texture Mapping and Baycentric Coordinates
+8. Texture Mapping (PNG Textures) and Baycentric Coordinates
 9. Perspective Correction
 
     
