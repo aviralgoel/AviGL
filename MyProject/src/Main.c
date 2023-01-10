@@ -88,16 +88,14 @@ void process_input(void) {
 			mode = RENDER_WIREFRAME;
 		if (event.key.keysym.sym == SDLK_2)
 			mode = RENDER_WIRE_FILLED;
-		if (event.key.keysym.sym == SDLK_3)
-			mode = RENDER_FILLED;
 		if (event.key.keysym.sym == SDLK_4)
-			mode = RENDER_WIRE_FILLED;
+			mode = RENDER_FILLED;
 		// enable texturing
 		if (event.key.keysym.sym == SDLK_5)
-			mode = RENDER_TEXTURED;
+			mode = RENDER_TEXTURED_WIRE;
 		// enable texture and wiring
 		if (event.key.keysym.sym == SDLK_6)
-			mode = RENDER_TEXTURED_WIRE;
+			mode = RENDER_TEXTURED;
 		if (event.key.keysym.sym == SDLK_p)
 			paintersAlgorithm = !paintersAlgorithm;
 
@@ -119,7 +117,7 @@ void update(void) {
 	// rotation per frame
 	mesh.rotation.x += 0.0f;
 	mesh.rotation.y += 0.01f;
-	mesh.rotation.z += 0.0f;
+	mesh.rotation.z += 0.01f;
 
 	// translation per frame
 	//mesh.translate.x += 0.02f;
@@ -191,7 +189,7 @@ void update(void) {
 
 		// Flat Shading
 		float lightEffect = normalizeInRange(vec3_dotProduct(normalToABC, dir_light.direction), 1, -1);
-		mesh_face.color = 0x000000FF; // RED
+		mesh_face.color = GOLD; // RED
 		mesh_face.color = light_apply_intensity(mesh_face.color, lightEffect);
 
 		// Loop all three vertices of this current face
@@ -255,11 +253,11 @@ void render(void) {
 		}
 		else if (mode == RENDER_WIRE_FILLED)
 		{
-			draw_triangle_filled(triangle, triangle.color, 0x000000FF);
+			draw_triangle(triangle, RED, true);
 		}
 		else if (mode == RENDER_FILLED)
 		{
-			draw_triangle_filled(triangle, PURPLE, PURPLE);
+			draw_triangle_filled(triangle, triangle.color, 0xFF0000FF);
 		}
 		else if (mode == RENDER_TEXTURED)
 		{

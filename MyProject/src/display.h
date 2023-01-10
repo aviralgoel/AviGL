@@ -13,7 +13,7 @@
 
 #pragma region Color Macros
 #define BLUE (0xFF0000FF)
-#define GOLD (0xFFD700)
+#define GOLD (0xFF00D7FF)
 #define GREEN (0x000000FF)
 #define PURPLE (0xFFA020F0)
 #define RED (0xFFFF0000)
