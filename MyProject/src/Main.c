@@ -55,8 +55,9 @@ void setup(void) {
 		window_width,
 		window_height
 	);
-	load_cube_mesh_data();
-	//load_obj_file_data("./assets/f22.obj");
+	//load_cube_mesh_data();
+	load_obj_file_data("./assets/efa.obj");
+	load_png_texture_data("./assets/efa.png");
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
@@ -68,7 +69,7 @@ void setup(void) {
 
 	// Manually load the texture data from static uint8 array and cast it into uint32
 	//mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
-	load_png_texture_data("./assets/cube1.png");
+	
 	
 }
 
@@ -116,9 +117,9 @@ void update(void) {
 	previous_frame_time = SDL_GetTicks();
 
 	// rotation per frame
-	mesh.rotation.x += 0.00f;
-	mesh.rotation.y += 0.02f;
-	mesh.rotation.z += 0.00f;
+	mesh.rotation.x += 0.0f;
+	mesh.rotation.y += 0.01f;
+	mesh.rotation.z += 0.0f;
 
 	// translation per frame
 	//mesh.translate.x += 0.02f;
@@ -262,11 +263,11 @@ void render(void) {
 		}
 		else if (mode == RENDER_TEXTURED)
 		{
-			draw_triangle_textured(triangle, mesh_texture);
+			draw_triangle_textured(triangle, mesh_texture, false);
 		}
 		else if (mode == RENDER_TEXTURED_WIRE)
 		{
-			draw_triangle_textured(triangle, mesh_texture);
+			draw_triangle_textured(triangle, mesh_texture, true);
 		}
 	}
 	array_free(triangles_to_render);
@@ -293,6 +294,7 @@ void free_resources(void)
 {
 	array_free(mesh.faces);
 	array_free(mesh.vertices);
+	array_free(mesh.texcoords);
 	free(color_buffer);
 	free_png_texture(png_texture);
 }

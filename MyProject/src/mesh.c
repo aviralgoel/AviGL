@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 mesh_t mesh = { .vertices = NULL,
+				.texcoords = NULL,
 				.faces = NULL,
 				.rotation = {0,0,0},
 				.scale = {1.0, 1.0, 1.0},
@@ -80,6 +81,12 @@ void load_obj_file_data(char* filename) {
 			sscanf_s(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
 			array_push(mesh.vertices, vertex);
 		}
+		// texture info
+		if (strncmp(line, "vt ", 3) == 0) {
+			tex2_t _texurecoord;
+			sscanf_s(line, "vt %f %f", &_texurecoord.u, &_texurecoord.v);
+			array_push(mesh.texcoords, _texurecoord);
+		}
 		// Face information
 		if (strncmp(line, "f ", 2) == 0) {
 			int vertex_indices[3];
@@ -94,7 +101,10 @@ void load_obj_file_data(char* filename) {
 			face_t face = {
 				.a = vertex_indices[0],
 				.b = vertex_indices[1],
-				.c = vertex_indices[2]
+				.c = vertex_indices[2],
+				.a_uv = mesh.texcoords[texture_indices[0]-1],
+				.b_uv = mesh.texcoords[texture_indices[1] - 1],
+				.c_uv = mesh.texcoords[texture_indices[2] - 1]
 			};
 			array_push(mesh.faces, face);
 		}

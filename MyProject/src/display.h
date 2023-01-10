@@ -45,7 +45,7 @@ void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t bord
 void fill_flat_bottom(triangle_t flatBottom, uint32_t color);
 void fill_flat_top(triangle_t flatBottom, uint32_t color);
 //void draw_triangle_textured(triangle_t triangle, bool wireframe, uint32_t* texture);
-void draw_triangle_textured(triangle_t triangle, uint32_t* texture);
+void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wireframe);
 vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p);
 #pragma endregion
 #pragma region other methods

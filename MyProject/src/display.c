@@ -99,6 +99,11 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	float u0, u1, u2, v0, v1, v2;
 	u0 = t.texcoords[0].u; u1 = t.texcoords[1].u; u2 = t.texcoords[2].u;
 	v0 = t.texcoords[0].v; v1 = t.texcoords[1].v; v2 = t.texcoords[2].v;
+
+	// flip the uv coordinates (if necessary, based on obj file format) (default is v grows upwards, but code below makes it flip)
+	v0 = 1 - v0;	v1 = 1 - v1;	v2 = 1 - v2;
+
+
 	float z0, z2, z1, w0, w2, w1;
 	
 	z0 = t.points[0].z; 	z1 = t.points[1].z; 	z2 = t.points[2].z;
@@ -128,13 +133,13 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	// based on the u,v value of P, fetch which texture color needs to be here from the texture
 	// u,v values are between [0,1] and texture is 64x64, hence scale it. [No Perspective Correction]
 	// u/w,v/w values are between [0,1] and texture is 64x64, hence scale it. [Perspective Correction]
-	int tex_x = abs((int)(interpolated_u * (texture_width - 1)));
-	int tex_y = abs((int)(interpolated_v * (texture_height - 1)));
+	int tex_x = abs((int)(interpolated_u * (texture_width - 1))) % texture_width;
+	int tex_y = abs((int)(interpolated_v * (texture_height - 1))) % texture_height;
 
 	// now we know exact texture color location in the texture image for Point P, let's fetch it
-	int textureIndex = ((texture_width * tex_y) + tex_x) % (texture_width * texture_height);
+	int textureIndex = (texture_width*tex_y)+tex_x;
 	// and draw pixel
-	draw_pixel(pixelX, pixelY, texture[(texture_width * tex_y) + tex_x]);
+	draw_pixel(pixelX, pixelY, texture[textureIndex]);
 }
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
 	for (int i = 0; i < width; i++) {
@@ -292,7 +297,7 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 		x_end -= invSlope1;
 	}
 }
-void draw_triangle_textured(triangle_t triangle, uint32_t* texture)
+void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wireframe)
 {
 	triangle = sortVertsByY	(triangle);
 	// coordinates of vertices in pixel/screen space
@@ -307,7 +312,8 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture)
 	///////////////////////////////////////////////////////
 	float inv_slope_1 = 0;
 	float inv_slope_2 = 0;
-	draw_triangle(triangle, WHITE, false);
+	if(wireframe)
+		draw_triangle(triangle, WHITE, false);
 	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
 	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
 
