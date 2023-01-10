@@ -68,7 +68,7 @@ void setup(void) {
 
 	// Manually load the texture data from static uint8 array and cast it into uint32
 	//mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
-	load_png_texture_data("./assets/cube.png");
+	load_png_texture_data("./assets/cube1.png");
 	
 }
 
