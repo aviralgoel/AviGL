@@ -134,7 +134,7 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	// now we know exact texture color location in the texture image for Point P, let's fetch it
 	int textureIndex = ((texture_width * tex_y) + tex_x) % (texture_width * texture_height);
 	// and draw pixel
-	draw_pixel(pixelX, pixelY, texture[textureIndex]);
+	draw_pixel(pixelX, pixelY, texture[(texture_width * tex_y) + tex_x]);
 }
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
 	for (int i = 0; i < width; i++) {

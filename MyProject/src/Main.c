@@ -12,6 +12,7 @@
 #include "matrix.h"
 #include "light.h"
 #include "texture.h"
+#include "upng.h"
 #pragma endregion
 
 void render(void);
@@ -49,7 +50,7 @@ void setup(void) {
 	// Creating a SDL texture that is used to display the color buffer
 	color_buffer_texture = SDL_CreateTexture(
 		renderer,
-		SDL_PIXELFORMAT_ARGB8888,
+		SDL_PIXELFORMAT_RGBA32,
 		SDL_TEXTUREACCESS_STREAMING,
 		window_width,
 		window_height
@@ -65,8 +66,10 @@ void setup(void) {
 	float zfar = 100.0;
 	proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
 
-	// load the texture data from static uint8 array and cast it into uint32
-	mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
+	// Manually load the texture data from static uint8 array and cast it into uint32
+	//mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
+	load_png_texture_data("./assets/cube1.png");
+	
 }
 
 void process_input(void) {
@@ -187,7 +190,7 @@ void update(void) {
 
 		// Flat Shading
 		float lightEffect = normalizeInRange(vec3_dotProduct(normalToABC, dir_light.direction), 1, -1);
-		mesh_face.color = GOLD;
+		mesh_face.color = 0x000000FF; // RED
 		mesh_face.color = light_apply_intensity(mesh_face.color, lightEffect);
 
 		// Loop all three vertices of this current face
@@ -251,7 +254,7 @@ void render(void) {
 		}
 		else if (mode == RENDER_WIRE_FILLED)
 		{
-			draw_triangle_filled(triangle, triangle.color, RED);
+			draw_triangle_filled(triangle, triangle.color, 0x000000FF);
 		}
 		else if (mode == RENDER_FILLED)
 		{
@@ -291,6 +294,7 @@ void free_resources(void)
 	array_free(mesh.faces);
 	array_free(mesh.vertices);
 	free(color_buffer);
+	free_png_texture(png_texture);
 }
 
 // method for me to experiment random stuff
