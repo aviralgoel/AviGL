@@ -19,6 +19,9 @@ typedef struct {
 	tex2_t a_uv;
 	tex2_t b_uv;
 	tex2_t c_uv;
+	vec3_t a_vn;
+	vec3_t b_vn;
+	vec3_t c_vn;
 	uint32_t color;
 } face_t;
 
@@ -29,6 +32,7 @@ typedef struct {
 	uint32_t color;
 	float avg_depth;
 	tex2_t texcoords[3];
+	float lightIntensities[3];
 } triangle_t;
 
 triangle_t sortVertsByY(triangle_t unsorted);

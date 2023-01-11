@@ -4,10 +4,12 @@
 
 mesh_t mesh = { .vertices = NULL,
 				.texcoords = NULL,
+				.vertex_normals = NULL,
 				.faces = NULL,
 				.rotation = {0,0,0},
 				.scale = {1.0, 1.0, 1.0},
-				.translate = {0, 0, 0} };
+				.translate = {0, 0, 0}
+};
 // coordinates of vertex in the world space
 // every vertex is currently a vec3
 vec3_t cube_vertices[N_CUBE_VERTICES] = {
@@ -87,6 +89,12 @@ void load_obj_file_data(char* filename) {
 			sscanf_s(line, "vt %f %f", &_texurecoord.u, &_texurecoord.v);
 			array_push(mesh.texcoords, _texurecoord);
 		}
+		// vertex normal info
+		if (strncmp(line, "vn ", 3) == 0) {
+			vec3_t _vn;
+			sscanf_s(line, "vn %f %f %f", &_vn.x, &_vn.y, & _vn.z);
+			array_push(mesh.vertex_normals, _vn);
+		}
 		// Face information
 		if (strncmp(line, "f ", 2) == 0) {
 			int vertex_indices[3];
@@ -102,9 +110,12 @@ void load_obj_file_data(char* filename) {
 				.a = vertex_indices[0],
 				.b = vertex_indices[1],
 				.c = vertex_indices[2],
-				.a_uv = mesh.texcoords[texture_indices[0]-1],
+				.a_uv = mesh.texcoords[texture_indices[0] - 1],
 				.b_uv = mesh.texcoords[texture_indices[1] - 1],
-				.c_uv = mesh.texcoords[texture_indices[2] - 1]
+				.c_uv = mesh.texcoords[texture_indices[2] - 1],
+				.a_vn = mesh.vertex_normals[normal_indices[0] -1],
+				.b_vn = mesh.vertex_normals[normal_indices[0] - 1],
+				.c_vn = mesh.vertex_normals[normal_indices[0] - 1]
 			};
 			array_push(mesh.faces, face);
 		}

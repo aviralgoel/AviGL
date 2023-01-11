@@ -1,5 +1,5 @@
 #include "display.h"
-
+#include "light.h"
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 uint32_t* color_buffer = NULL;
@@ -103,9 +103,8 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	// flip the uv coordinates (if necessary, based on obj file format) (default is v grows upwards, but code below makes it flip)
 	v0 = 1 - v0;	v1 = 1 - v1;	v2 = 1 - v2;
 
-
 	float z0, z2, z1, w0, w2, w1;
-	
+
 	z0 = t.points[0].z; 	z1 = t.points[1].z; 	z2 = t.points[2].z;
 	w0 = t.points[0].w; 	w1 = t.points[1].w; 	w2 = t.points[2].w;
 
@@ -117,11 +116,9 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 
 	// what will be the u,v value of point P, given that we have u,v value of the vertices of the triangle
 	float A = w1 * w2 * alpha; float B = w0 * w2 * beta; float C = w1 * w0 * gamma;
-	float interpolated_u = (u0*A + u1 * B + u2*C)/(A+B+C);
-	float interpolated_v = (v0*A + v1*B+v2*C)/(A+B+C);
-	
+	float interpolated_u = (u0 * A + u1 * B + u2 * C) / (A + B + C);
+	float interpolated_v = (v0 * A + v1 * B + v2 * C) / (A + B + C);
 
-	
 	// unoptimized naive way //
 	/*float interpolated_w_reciprocal;
 	interpolated_u = (u0/w0) * alpha + (u1/w1 ) * beta + (u2/w2 ) * gamma;
@@ -137,10 +134,50 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	int tex_y = abs((int)(interpolated_v * (texture_height - 1))) % texture_height;
 
 	// now we know exact texture color location in the texture image for Point P, let's fetch it
-	int textureIndex = (texture_width*tex_y)+tex_x;
+	int textureIndex = (texture_width * tex_y) + tex_x;
 	// and draw pixel
 	draw_pixel(pixelX, pixelY, texture[textureIndex]);
 }
+void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode)
+{	
+
+	if (shadeMode == 0) // flat shading
+	{
+		draw_pixel(pixelX, pixelY, t.color); return;
+	}	
+	if (shadeMode == 1) // gouraud shading
+	{	
+		// the three vertices of the triangle and the Point P where texture needs to be determined.
+		vec2_t point_a = { .x = t.points[0].x, .y = t.points[0].y };
+		vec2_t point_b = { .x = t.points[1].x, .y = t.points[1].y };
+		vec2_t point_c = { .x = t.points[2].x, .y = t.points[2].y };
+		vec2_t point_p = { .x = pixelX, .y = pixelY };
+
+		// light intensity
+		float li0, li1, li2;
+		li0 = t.lightIntensities[0]; li1 = t.lightIntensities[1]; li2 = t.lightIntensities[1];
+
+		vec3_t barycentric_coordinates = barycentric_weights(point_a, point_b, point_c, point_p);
+		float alpha = barycentric_coordinates.x;
+		float beta = barycentric_coordinates.y;
+		float gamma = barycentric_coordinates.z;
+
+		float w0, w2, w1;
+
+		w0 = t.points[0].w; 	w1 = t.points[1].w; 	w2 = t.points[2].w;
+		//w0 = 1; 	w1 = 1; 	w2 = 1;
+
+		float A = w1 * w2 * alpha; 
+		float B = w0 * w2 * beta; 
+		float C = w1 * w0 * gamma;
+		float interpolated_intensity = (li0 * A + li1 * B + li2 * C) / (A + B + C);
+		uint32_t interpolated_color = light_apply_intensity(t.color, interpolated_intensity);
+		draw_pixel(pixelX, pixelY, interpolated_color);
+	}
+	
+
+}
+
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -209,6 +246,27 @@ void draw_line_BLA(int x0, int y0, int x1, int y1, uint32_t color)
 			y0 += sy;
 		}
 	}
+}
+vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p)
+{
+	vec2_t ac = vec2_subtract(c, a);
+	vec2_t ab = vec2_subtract(b, a);
+	vec2_t pc = vec2_subtract(c, p);
+	vec2_t pb = vec2_subtract(b, p);
+	vec2_t ap = vec2_subtract(p, a);
+
+	// area using cross product || AC x AB ||
+	float area_of_parallelogram = (ac.x * ab.y) - (ac.y * ab.x);
+	// || PC x PB || / areaOfParallelogram
+	float alpha = ((pc.x * pb.y) - (pc.y * pb.x)) / area_of_parallelogram;
+	// || ACxAP || / areaOfParallelogram
+	float beta = ((ac.x * ap.y) - (ac.y * ap.x)) / area_of_parallelogram;
+
+	float gamma = 1 - alpha - beta;
+
+	vec3_t weights = { .x = alpha, .y = beta, .z = gamma };
+
+	return weights;
 }
 /// <summary>
 /// draws a wire frame triangle
@@ -299,20 +357,19 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 }
 void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wireframe)
 {
-	triangle = sortVertsByY	(triangle);
+	triangle = sortVertsByY(triangle);
 	// coordinates of vertices in pixel/screen space
 	int x0, x1, x2, y0, y1, y2;
 	float z0, z2, z1, w0, w2, w1;
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
 
-	
 	///////////////////////////////////////////////////////
 	// Render the upper part of the triangle (flat-bottom)
 	///////////////////////////////////////////////////////
 	float inv_slope_1 = 0;
 	float inv_slope_2 = 0;
-	if(wireframe)
+	if (wireframe)
 		draw_triangle(triangle, WHITE, false);
 	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
 	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
@@ -360,24 +417,69 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wirefra
 		}
 	}
 }
-vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p)
+void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t borderColor, int shadeMode)
 {
-	vec2_t ac = vec2_subtract(c, a);
-	vec2_t ab = vec2_subtract(b, a);
-	vec2_t pc = vec2_subtract(c, p);
-	vec2_t pb = vec2_subtract(b, p);
-	vec2_t ap = vec2_subtract(p, a);
+	triangle = sortVertsByY(triangle);
+	// coordinates of vertices in pixel/screen space
+	int x0, x1, x2, y0, y1, y2;
+	float z0, z2, z1, w0, w2, w1;
+	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
+	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
 
-	// area using cross product || AC x AB ||
-	float area_of_parallelogram = (ac.x * ab.y) - (ac.y * ab.x);
-	// || PC x PB || / areaOfParallelogram
-	float alpha = ((pc.x * pb.y) - (pc.y * pb.x)) / area_of_parallelogram;
-	// || ACxAP || / areaOfParallelogram
-	float beta = ((ac.x * ap.y) - (ac.y * ap.x)) / area_of_parallelogram;
 
-	float gamma = 1 - alpha - beta;
+	// draw border
+	draw_triangle(triangle, borderColor, false);
 
-	vec3_t weights = { .x = alpha, .y = beta, .z = gamma };
 
-	return weights;
+	///////////////////////////////////////////////////////
+	// Render the upper part of the triangle (flat-bottom)
+	///////////////////////////////////////////////////////
+	float inv_slope_1 = 0;
+	float inv_slope_2 = 0;
+	
+	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
+	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
+
+	if (y1 - y0 != 0) {
+		for (int y = y0; y <= y1; y++) {
+			int x_start = x1 + (y - y1) * inv_slope_1;
+			int x_end = x0 + (y - y0) * inv_slope_2;
+
+			if (x_end < x_start) {
+				swap(x_start, x_end); // swap if x_start is to the right of x_end
+			}
+
+			for (int x = x_start; x < x_end; x++) {
+				// Draw our pixel with a custom color
+				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
+				draw_pixel_shaded(x, y, triangle, shadeMode);
+			}
+		}
+	}
+
+	///////////////////////////////////////////////////////
+	// Render the bottom part of the triangle (flat-top)
+	///////////////////////////////////////////////////////
+	inv_slope_1 = 0;
+	inv_slope_2 = 0;
+
+	if (y2 - y1 != 0) inv_slope_1 = (float)(x2 - x1) / abs(y2 - y1);
+	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
+
+	if (y2 - y1 != 0) {
+		for (int y = y1; y <= y2; y++) {
+			int x_start = x1 + (y - y1) * inv_slope_1;
+			int x_end = x0 + (y - y0) * inv_slope_2;
+
+			if (x_end < x_start) {
+				swap(x_start, x_end); // swap if x_start is to the right of x_end
+			}
+
+			for (int x = x_start; x < x_end; x++) {
+				/// Draw our pixel with a custom color
+				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
+				draw_pixel_shaded(x, y, triangle, shadeMode);
+			}
+		}
+	}
 }

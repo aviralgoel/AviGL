@@ -79,7 +79,7 @@ float vec2_dotProduct(vec2_t a, vec2_t b)
 	return result;
 }
 
-#pragma endregion 
+#pragma endregion
 #pragma region Vector THREED Functions
 float vec3_magnitude(vec3_t v)
 {

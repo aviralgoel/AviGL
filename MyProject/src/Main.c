@@ -23,7 +23,7 @@ void free_resources(void);
 triangle_t* triangles_to_render = NULL;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
-light_t dir_light = { .direction = {-1,-1,-1} };
+light_t dir_light = { .direction = {1,1,-1} };
 mat4_t proj_matrix;
 
 bool is_running = false;
@@ -31,7 +31,8 @@ int previous_frame_time = 0;
 // Rendering mode
 enum renderMode {
 	RENDER_WIREFRAME,
-	RENDER_FILLED,
+	RENDER_FILLED_FLAT,
+	RENDER_FILLED_GOURAUD,
 	RENDER_WIRE_FILLED,
 	RENDER_TEXTURED,
 	RENDER_TEXTURED_WIRE
@@ -56,8 +57,8 @@ void setup(void) {
 		window_height
 	);
 	//load_cube_mesh_data();
-	load_obj_file_data("./assets/efa.obj");
-	load_png_texture_data("./assets/efa.png");
+	load_obj_file_data("./assets/f22.obj");
+	load_png_texture_data("./assets/f22.png");
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
@@ -69,8 +70,6 @@ void setup(void) {
 
 	// Manually load the texture data from static uint8 array and cast it into uint32
 	//mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
-	
-	
 }
 
 void process_input(void) {
@@ -88,8 +87,10 @@ void process_input(void) {
 			mode = RENDER_WIREFRAME;
 		if (event.key.keysym.sym == SDLK_2)
 			mode = RENDER_WIRE_FILLED;
+		if (event.key.keysym.sym == SDLK_3)
+			mode = RENDER_FILLED_FLAT;
 		if (event.key.keysym.sym == SDLK_4)
-			mode = RENDER_FILLED;
+			mode = RENDER_FILLED_GOURAUD;
 		// enable texturing
 		if (event.key.keysym.sym == SDLK_5)
 			mode = RENDER_TEXTURED_WIRE;
@@ -115,9 +116,9 @@ void update(void) {
 	previous_frame_time = SDL_GetTicks();
 
 	// rotation per frame
-	mesh.rotation.x += 0.0f;
-	mesh.rotation.y += 0.01f;
-	mesh.rotation.z += 0.01f;
+	mesh.rotation.x += 0.01f;
+	mesh.rotation.y += 0.00f;
+	mesh.rotation.z += 0.00;
 
 	// translation per frame
 	//mesh.translate.x += 0.02f;
@@ -146,12 +147,20 @@ void update(void) {
 		face_vertices[0] = mesh.vertices[mesh_face.a - 1];
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1];
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1];
-
+		// for each face, fetch its three corresponding vertices's normals (vec3)
+		vec3_t face_vertex_normals[3];
+		face_vertex_normals[0] = mesh_face.a_vn;// a
+		face_vertex_normals[1] = mesh_face.b_vn;// b
+		face_vertex_normals[2] = mesh_face.c_vn;// c
+		
+		
 		vec4_t transformed_vertices[3];
+		vec3_t transformed_vertices_normals[3];
 
 		// Loop all three vertices of this current face and apply transformations
 		for (int j = 0; j < 3; j++) {
 			vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
+			vec4_t transformed_normal = vec4_from_vec3(face_vertex_normals[j]);
 
 			// transform (Order => Scale -> Rotate -> Translate)
 			mat4_t worldMatrix = mat4_make_identity();
@@ -159,15 +168,19 @@ void update(void) {
 			worldMatrix = mat4_multiply_mat4(rotXMatrix, worldMatrix);
 			worldMatrix = mat4_multiply_mat4(rotYMatrix, worldMatrix);
 			worldMatrix = mat4_multiply_mat4(rotZMatrix, worldMatrix);
+			transformed_normal = mat4_multiply_vec4(worldMatrix, transformed_normal);
 			worldMatrix = mat4_multiply_mat4(translateMatrix, worldMatrix);
-			worldMatrix = mat4_multiply_mat4(scaleMatrix, worldMatrix);
 			// the ultimate world matrix after accounting for R T S
-			worldMatrix = worldMatrix;
-			// vertex is now transformed but still in world space
+			worldMatrix = mat4_multiply_mat4(scaleMatrix, worldMatrix);
+	
+			// vertex coordinates are now transformed but still in world space
 			transformed_vertex = mat4_multiply_vec4(worldMatrix, transformed_vertex);
+
+			// vertex_normal coordinates are now also transformed but still in world space
 
 			// save this transformed vertex into an array
 			transformed_vertices[j] = transformed_vertex;
+			transformed_vertices_normals[j] = vec3_from_vec4(transformed_normal);
 		}
 
 		vec3_t BminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[1]), vec3_from_vec4(transformed_vertices[0]));
@@ -189,9 +202,15 @@ void update(void) {
 
 		// Flat Shading
 		float lightEffect = normalizeInRange(vec3_dotProduct(normalToABC, dir_light.direction), 1, -1);
-		mesh_face.color = GOLD; // RED
+		mesh_face.color = GREEN; // RED
 		mesh_face.color = light_apply_intensity(mesh_face.color, lightEffect);
 
+		// Gouraud Shading
+		float lightIntensities[3];
+		lightIntensities[0] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[0], dir_light.direction), 1, -1);
+		lightIntensities[1] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[1], dir_light.direction), 1, -1);
+		lightIntensities[2] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[2], dir_light.direction), 1, -1);
+		
 		// Loop all three vertices of this current face
 		// and apply perspective divide to the transformed vertices
 		vec4_t projected_points[3];
@@ -227,9 +246,14 @@ void update(void) {
 				{mesh_face.a_uv.u, mesh_face.a_uv.v},
 				{mesh_face.b_uv.u, mesh_face.b_uv.v},
 				{mesh_face.c_uv.u, mesh_face.c_uv.v},
-		},
-			.color = mesh_face.color,
-			.avg_depth = avg_depth
+			},
+			.color = GOLD,
+			.avg_depth = avg_depth,
+			.lightIntensities = { 
+				lightIntensities[0], 
+				lightIntensities[1], 
+				lightIntensities[2]
+			},
 		};
 
 		// Save the projected triangle in the array of triangles to render
@@ -255,9 +279,13 @@ void render(void) {
 		{
 			draw_triangle(triangle, RED, true);
 		}
-		else if (mode == RENDER_FILLED)
+		else if (mode == RENDER_FILLED_FLAT)
 		{
-			draw_triangle_filled(triangle, triangle.color, 0xFF0000FF);
+			draw_triangle_shaded(triangle,triangle.color,BLUE,0);
+		}
+		else if (mode == RENDER_FILLED_GOURAUD)
+		{
+			draw_triangle_shaded(triangle,triangle.color, RED, 1);
 		}
 		else if (mode == RENDER_TEXTURED)
 		{

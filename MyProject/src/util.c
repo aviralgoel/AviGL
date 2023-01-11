@@ -1,5 +1,5 @@
 #include "util.h"
-#define PI 3.1415926 
+#define PI 3.1415926
 float normalizeInRange(float value, float max, float min)
 {
 	float result = (value - min) / (max - min);
