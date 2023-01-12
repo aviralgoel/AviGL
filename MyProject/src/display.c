@@ -3,6 +3,7 @@
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 uint32_t* color_buffer = NULL;
+float* z_buffer = NULL;
 SDL_Texture* color_buffer_texture = NULL;
 int window_width = 800;
 int window_height = 600;
@@ -56,6 +57,14 @@ void clear_color_buffer(uint32_t color) {
 	for (int y = 0; y < window_height; y++) {
 		for (int x = 0; x < window_width; x++) {
 			color_buffer[(window_width * y) + x] = color;
+		}
+	}
+}
+void clear_z_buffer()
+{
+	for (int y = 0; y < window_height; y++) {
+		for (int x = 0; x < window_width; x++) {
+			z_buffer[(window_width * y) + x] = 1.0f;
 		}
 	}
 }
@@ -118,25 +127,26 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	float A = w1 * w2 * alpha; float B = w0 * w2 * beta; float C = w1 * w0 * gamma;
 	float interpolated_u = (u0 * A + u1 * B + u2 * C) / (A + B + C);
 	float interpolated_v = (v0 * A + v1 * B + v2 * C) / (A + B + C);
+	
+	// calculating interpolated w (cuz z is not linear) for z buffer values
+	float interpolated_reciprocal_w = (A + B + C) / (w1 * w2 * w0);
+	interpolated_reciprocal_w = 1 - interpolated_reciprocal_w;
+	if (interpolated_reciprocal_w < z_buffer[(window_width * pixelY) + pixelX])
+	{
+		int tex_x = abs((int)(interpolated_u * (texture_width - 1))) % texture_width;
+		int tex_y = abs((int)(interpolated_v * (texture_height - 1))) % texture_height;
+		// now we know exact texture color location in the texture image for Point P, let's fetch it
+		// based on the u,v value of P, fetch which texture color needs to be here from the texture
+		// u,v values are between [0,1] and texture is 64x64, hence scale it. [No Perspective Correction]
+		// u/w,v/w values are between [0,1] and texture is 64x64, hence scale it. [Perspective Correction]
+		int textureIndex = (texture_width * tex_y) + tex_x;
+		// and draw pixel
+		draw_pixel(pixelX, pixelY, texture[textureIndex]);
+		z_buffer[(window_width * pixelY) + pixelX] = interpolated_reciprocal_w;
+	}
 
-	// unoptimized naive way //
-	/*float interpolated_w_reciprocal;
-	interpolated_u = (u0/w0) * alpha + (u1/w1 ) * beta + (u2/w2 ) * gamma;
-	interpolated_v = (v0/w0 ) * alpha + (v1/w1 ) * beta + (v2/w2 ) * gamma;
-	interpolated_w_reciprocal = (1 / w0) * alpha + (1 / w1) * beta + (1 / w2) * gamma;
-	interpolated_u /= interpolated_w_reciprocal;
-	interpolated_v /= interpolated_w_reciprocal;*/
-
-	// based on the u,v value of P, fetch which texture color needs to be here from the texture
-	// u,v values are between [0,1] and texture is 64x64, hence scale it. [No Perspective Correction]
-	// u/w,v/w values are between [0,1] and texture is 64x64, hence scale it. [Perspective Correction]
-	int tex_x = abs((int)(interpolated_u * (texture_width - 1))) % texture_width;
-	int tex_y = abs((int)(interpolated_v * (texture_height - 1))) % texture_height;
-
-	// now we know exact texture color location in the texture image for Point P, let's fetch it
-	int textureIndex = (texture_width * tex_y) + tex_x;
-	// and draw pixel
-	draw_pixel(pixelX, pixelY, texture[textureIndex]);
+	
+	
 }
 void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode)
 {	
@@ -172,7 +182,16 @@ void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode)
 		float C = w1 * w0 * gamma;
 		float interpolated_intensity = (li0 * A + li1 * B + li2 * C) / (A + B + C);
 		uint32_t interpolated_color = light_apply_intensity(t.color, interpolated_intensity);
-		draw_pixel(pixelX, pixelY, interpolated_color);
+		float interpolated_reciprocal_w = (A + B + C) / (w1 * w2 * w0);
+		interpolated_reciprocal_w = 1 - interpolated_reciprocal_w;
+
+		if (interpolated_reciprocal_w < z_buffer[(window_width * pixelY) + pixelX])
+		{
+			draw_pixel(pixelX, pixelY, interpolated_color);
+			z_buffer[(window_width * pixelY) + pixelX] = interpolated_reciprocal_w;	
+		}
+		
+		
 	}
 	
 
@@ -428,7 +447,7 @@ void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t bord
 
 
 	// draw border
-	draw_triangle(triangle, borderColor, false);
+	//draw_triangle(triangle, borderColor, false);
 
 
 	///////////////////////////////////////////////////////

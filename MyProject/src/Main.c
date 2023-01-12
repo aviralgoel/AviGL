@@ -15,12 +15,17 @@
 #include "upng.h"
 #pragma endregion
 
+#define MAX_TRIANGLES_PER_MESH 10000
+
+
 void render(void);
 void playground(void);
 // Function Prototypes
 void free_resources(void);
 // Number of triangles to be rendered = number of faces (since each triangle corresponds to one face)
-triangle_t* triangles_to_render = NULL;
+//triangle_t* triangles_to_render = NULL;
+triangle_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
+int num_triangles_to_render = 0;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
 light_t dir_light = { .direction = {1,1,-1} };
@@ -47,6 +52,7 @@ void setup(void) {
 	//playground();
 	// Allocate the required memory in bytes to hold the color buffer
 	color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
+	z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
 
 	// Creating a SDL texture that is used to display the color buffer
 	color_buffer_texture = SDL_CreateTexture(
@@ -57,8 +63,8 @@ void setup(void) {
 		window_height
 	);
 	//load_cube_mesh_data();
-	load_obj_file_data("./assets/f22.obj");
-	load_png_texture_data("./assets/f22.png");
+	load_obj_file_data("./assets/drone.obj");
+	load_png_texture_data("./assets/drone.png");
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
@@ -98,14 +104,15 @@ void process_input(void) {
 		if (event.key.keysym.sym == SDLK_6)
 			mode = RENDER_TEXTURED;
 		if (event.key.keysym.sym == SDLK_p)
-			paintersAlgorithm = !paintersAlgorithm;
+			backfaceCulling = !backfaceCulling;
 
 		break;
 	}
 }
 
 void update(void) {
-	triangles_to_render = NULL;
+	//triangles_to_render = NULL;
+	num_triangles_to_render = 0;
 	// Returns an unsigned 32-bit value representing the number of milliseconds since the SDL library initialized.
 	int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
 
@@ -234,7 +241,7 @@ void update(void) {
 		}
 
 		// Calculate the average depth for each face based on the vertices after transformation
-		float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;
+		//float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;
 
 		triangle_t projected_triangle = {
 			.points = {
@@ -248,7 +255,7 @@ void update(void) {
 				{mesh_face.c_uv.u, mesh_face.c_uv.v},
 			},
 			.color = GOLD,
-			.avg_depth = avg_depth,
+			//.avg_depth = avg_depth,
 			.lightIntensities = { 
 				lightIntensities[0], 
 				lightIntensities[1], 
@@ -257,18 +264,23 @@ void update(void) {
 		};
 
 		// Save the projected triangle in the array of triangles to render
-		array_push(triangles_to_render, projected_triangle);
+		//array_push(triangles_to_render, projected_triangle);
+		if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
+		{
+			triangles_to_render[num_triangles_to_render++] = projected_triangle;
+		}
+		
 	}
 	int remainingFaces = array_length(triangles_to_render);
 	// Painters Algorithsm
-	quicksort_triangles(triangles_to_render, 0, remainingFaces - 1);
+	//quicksort_triangles(triangles_to_render, 0, remainingFaces - 1);
 }
 
 void render(void) {
 	draw_grid();
-	int numOfTriangles = array_length(triangles_to_render);
+	//int numOfTriangles = array_length(triangles_to_render);
 	// Loop all projected triangles and render them
-	for (int i = 0; i < numOfTriangles; i++) {
+	for (int i = 0; i < num_triangles_to_render; i++) {
 		triangle_t triangle = triangles_to_render[i];
 		//draw_triangle_filled(triangle, RED, PURPLE, true);
 		if (mode == RENDER_WIREFRAME)
@@ -296,9 +308,10 @@ void render(void) {
 			draw_triangle_textured(triangle, mesh_texture, true);
 		}
 	}
-	array_free(triangles_to_render);
+	//array_free(triangles_to_render);
 	render_color_buffer();
 	clear_color_buffer(0xFF000000);
+	clear_z_buffer();
 	SDL_RenderPresent(renderer);
 }
 int main(void) {
@@ -321,7 +334,9 @@ void free_resources(void)
 	array_free(mesh.faces);
 	array_free(mesh.vertices);
 	array_free(mesh.texcoords);
+	array_free(mesh.vertex_normals);
 	free(color_buffer);
+	free(z_buffer);
 	free_png_texture(png_texture);
 }
 
