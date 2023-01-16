@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <time.h>
 #include <SDL.h>
 #include "array.h"
 #include "display.h"
@@ -13,6 +14,7 @@
 #include "light.h"
 #include "texture.h"
 #include "upng.h"
+
 #pragma endregion
 
 #define MAX_TRIANGLES_PER_MESH 10000
@@ -63,7 +65,11 @@ void setup(void) {
 		window_height
 	);
 	//load_cube_mesh_data();
+	clock_t t;
+	t = clock();
 	load_obj_file_data("./assets/drone.obj");
+	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+	printf("load_obj_file_data took %f seconds to load %d triangles from the obj file\n", time_taken, array_length(mesh.faces));
 	load_png_texture_data("./assets/drone.png");
 
 	//rendering mode
@@ -320,9 +326,13 @@ int main(void) {
 	setup();
 
 	while (is_running) {
+		clock_t t = clock();
 		process_input();
 		update();
 		render();
+		t = clock() - t;
+		double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+		printf("took %f seconds to draw %d triangles \n", time_taken, array_length(mesh.faces));
 	}
 
 	destroy_window();
