@@ -151,3 +151,19 @@ vec4_t mat4_multiply_vec4(mat4_t mat, vec4_t v)
 	};
 	return result;
 }
+
+mat4_t mat4_look_at(vec3_t eye, vec3_t target, vec3_t up)
+{
+	vec3_t z = vec3_subtract(target, eye); 	vec3_normalize(&z);
+	vec3_t x = vec3_crossProduct(up, z);	vec3_normalize(&x);
+	vec3_t y = vec3_crossProduct(z, x);
+
+	mat4_t view_matrix = { {
+		{x.x, x.y, x.z, -vec3_dotProduct(x, eye)},
+		{y.x, y.y, y.z, -vec3_dotProduct(y, eye)},
+		{z.x, z.y, z.z, -vec3_dotProduct(z, eye)},
+		{0 ,	0,	0,				 1          },
+		} };
+
+	return view_matrix;
+}

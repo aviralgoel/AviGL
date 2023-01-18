@@ -127,11 +127,12 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	float A = w1 * w2 * alpha; float B = w0 * w2 * beta; float C = w1 * w0 * gamma;
 	float interpolated_u = (u0 * A + u1 * B + u2 * C) / (A + B + C);
 	float interpolated_v = (v0 * A + v1 * B + v2 * C) / (A + B + C);
-	
+
 	// calculating interpolated w (cuz z is not linear) for z buffer values
 	float interpolated_reciprocal_w = (A + B + C) / (w1 * w2 * w0);
 	interpolated_reciprocal_w = 1 - interpolated_reciprocal_w;
-	if (interpolated_reciprocal_w < z_buffer[(window_width * pixelY) + pixelX])
+	int zIndex = ((window_width * pixelY) + pixelX) % (window_width * window_height);
+	if (interpolated_reciprocal_w < z_buffer[zIndex])
 	{
 		int tex_x = abs((int)(interpolated_u * (texture_width - 1))) % texture_width;
 		int tex_y = abs((int)(interpolated_v * (texture_height - 1))) % texture_height;
@@ -142,21 +143,17 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 		int textureIndex = (texture_width * tex_y) + tex_x;
 		// and draw pixel
 		draw_pixel(pixelX, pixelY, texture[textureIndex]);
-		z_buffer[(window_width * pixelY) + pixelX] = interpolated_reciprocal_w;
+		z_buffer[zIndex] = interpolated_reciprocal_w;
 	}
-
-	
-	
 }
 void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode)
-{	
-
+{
 	if (shadeMode == 0) // flat shading
 	{
 		draw_pixel(pixelX, pixelY, t.color); return;
-	}	
+	}
 	if (shadeMode == 1) // gouraud shading
-	{	
+	{
 		// the three vertices of the triangle and the Point P where texture needs to be determined.
 		vec2_t point_a = { .x = t.points[0].x, .y = t.points[0].y };
 		vec2_t point_b = { .x = t.points[1].x, .y = t.points[1].y };
@@ -177,24 +174,20 @@ void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode)
 		w0 = t.points[0].w; 	w1 = t.points[1].w; 	w2 = t.points[2].w;
 		//w0 = 1; 	w1 = 1; 	w2 = 1;
 
-		float A = w1 * w2 * alpha; 
-		float B = w0 * w2 * beta; 
+		float A = w1 * w2 * alpha;
+		float B = w0 * w2 * beta;
 		float C = w1 * w0 * gamma;
 		float interpolated_intensity = (li0 * A + li1 * B + li2 * C) / (A + B + C);
 		uint32_t interpolated_color = light_apply_intensity(t.color, interpolated_intensity);
 		float interpolated_reciprocal_w = (A + B + C) / (w1 * w2 * w0);
 		interpolated_reciprocal_w = 1 - interpolated_reciprocal_w;
-
-		if (interpolated_reciprocal_w < z_buffer[(window_width * pixelY) + pixelX])
+		int zIndex = ((window_width * pixelY) + pixelX) % (window_width * window_height);
+		if (interpolated_reciprocal_w < z_buffer[zIndex])
 		{
 			draw_pixel(pixelX, pixelY, interpolated_color);
-			z_buffer[(window_width * pixelY) + pixelX] = interpolated_reciprocal_w;	
+			z_buffer[zIndex] = interpolated_reciprocal_w;
 		}
-		
-		
 	}
-	
-
 }
 
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
@@ -445,17 +438,15 @@ void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t bord
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
 
-
 	// draw border
 	//draw_triangle(triangle, borderColor, false);
-
 
 	///////////////////////////////////////////////////////
 	// Render the upper part of the triangle (flat-bottom)
 	///////////////////////////////////////////////////////
 	float inv_slope_1 = 0;
 	float inv_slope_2 = 0;
-	
+
 	if (y1 - y0 != 0) inv_slope_1 = (float)(x1 - x0) / abs(y1 - y0);
 	if (y2 - y0 != 0) inv_slope_2 = (float)(x2 - x0) / abs(y2 - y0);
 
@@ -471,7 +462,8 @@ void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t bord
 			for (int x = x_start; x < x_end; x++) {
 				// Draw our pixel with a custom color
 				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
-				draw_pixel_shaded(x, y, triangle, shadeMode);
+				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
+					draw_pixel_shaded(x, y, triangle, shadeMode);
 			}
 		}
 	}
@@ -497,7 +489,8 @@ void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t bord
 			for (int x = x_start; x < x_end; x++) {
 				/// Draw our pixel with a custom color
 				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
-				draw_pixel_shaded(x, y, triangle, shadeMode);
+				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
+					draw_pixel_shaded(x, y, triangle, shadeMode);
 			}
 		}
 	}

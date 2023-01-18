@@ -92,7 +92,7 @@ void load_obj_file_data(char* filename) {
 		// vertex normal info
 		if (strncmp(line, "vn ", 3) == 0) {
 			vec3_t _vn;
-			sscanf_s(line, "vn %f %f %f", &_vn.x, &_vn.y, & _vn.z);
+			sscanf_s(line, "vn %f %f %f", &_vn.x, &_vn.y, &_vn.z);
 			array_push(mesh.vertex_normals, _vn);
 		}
 		// Face information
@@ -113,7 +113,7 @@ void load_obj_file_data(char* filename) {
 				.a_uv = mesh.texcoords[texture_indices[0] - 1],
 				.b_uv = mesh.texcoords[texture_indices[1] - 1],
 				.c_uv = mesh.texcoords[texture_indices[2] - 1],
-				.a_vn = mesh.vertex_normals[normal_indices[0] -1],
+				.a_vn = mesh.vertex_normals[normal_indices[0] - 1],
 				.b_vn = mesh.vertex_normals[normal_indices[0] - 1],
 				.c_vn = mesh.vertex_normals[normal_indices[0] - 1]
 			};

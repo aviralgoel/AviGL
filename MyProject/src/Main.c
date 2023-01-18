@@ -14,11 +14,11 @@
 #include "light.h"
 #include "texture.h"
 #include "upng.h"
+#include "camera.h"
 
 #pragma endregion
 
 #define MAX_TRIANGLES_PER_MESH 10000
-
 
 void render(void);
 void playground(void);
@@ -29,12 +29,14 @@ void free_resources(void);
 triangle_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
 int num_triangles_to_render = 0;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
+//vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
+mat4_t camera_view_matrix;
 light_t dir_light = { .direction = {1,1,-1} };
 mat4_t proj_matrix;
 
 bool is_running = false;
 int previous_frame_time = 0;
+float delta_time = 0;
 // Rendering mode
 enum renderMode {
 	RENDER_WIREFRAME,
@@ -65,12 +67,12 @@ void setup(void) {
 		window_height
 	);
 	//load_cube_mesh_data();
-	clock_t t;
-	t = clock();
-	load_obj_file_data("./assets/drone.obj");
-	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
-	printf("load_obj_file_data took %f seconds to load %d triangles from the obj file\n", time_taken, array_length(mesh.faces));
-	load_png_texture_data("./assets/drone.png");
+	//clock_t t;
+	//t = clock();
+	load_obj_file_data("./assets/efa.obj");
+	//double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+	//printf("load_obj_file_data took %f seconds to load %d triangles from the obj file\n", time_taken, array_length(mesh.faces));
+	load_png_texture_data("./assets/efa.png");
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
@@ -123,25 +125,34 @@ void update(void) {
 	int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
 
 	// Only delay execution if we are running too fast
-	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
-		SDL_Delay(time_to_wait);
-	}
+	//if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+	//	SDL_Delay(time_to_wait);
+	//}
+	delta_time = (SDL_GetTicks() - previous_frame_time)/1000.0;
 	previous_frame_time = SDL_GetTicks();
 
 	// rotation per frame
-	mesh.rotation.x += 0.01f;
-	mesh.rotation.y += 0.00f;
-	mesh.rotation.z += 0.00;
+	mesh.rotation.x += 0.06f;
+	mesh.rotation.y += 0.06f;
+	mesh.rotation.z += 0.06f;
 
 	// translation per frame
 	//mesh.translate.x += 0.02f;
 	//mesh.translate.y += -0.01f;
-	mesh.translate.z = (-1) * (camera_position.z);
+	mesh.translate.z = 5.0f;
 
 	// scale per frame
 	mesh.scale.x = 2;
 	mesh.scale.y = 2;
 	mesh.scale.z = 2;
+
+	// change camera position per frame
+	//camera.position.x += 0.01f * delta_time;
+	//camera.position.y += 0.01f * delta_time;
+	
+	vec3_t target = {0,0,4.0};
+	vec3_t up_direction = { 0,1,0 };
+	camera_view_matrix = mat4_look_at(camera.position, target, up_direction);
 
 	mat4_t scaleMatrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 	mat4_t translateMatrix = mat4_make_translate(mesh.translate.x, mesh.translate.y, mesh.translate.z);
@@ -165,8 +176,7 @@ void update(void) {
 		face_vertex_normals[0] = mesh_face.a_vn;// a
 		face_vertex_normals[1] = mesh_face.b_vn;// b
 		face_vertex_normals[2] = mesh_face.c_vn;// c
-		
-		
+
 		vec4_t transformed_vertices[3];
 		vec3_t transformed_vertices_normals[3];
 
@@ -185,11 +195,14 @@ void update(void) {
 			worldMatrix = mat4_multiply_mat4(translateMatrix, worldMatrix);
 			// the ultimate world matrix after accounting for R T S
 			worldMatrix = mat4_multiply_mat4(scaleMatrix, worldMatrix);
-	
+
 			// vertex coordinates are now transformed but still in world space
 			transformed_vertex = mat4_multiply_vec4(worldMatrix, transformed_vertex);
+			
+			// vertex coordinates are now transformed but now in camera space
+			transformed_vertex = mat4_multiply_vec4(camera_view_matrix, transformed_vertex);
 
-			// vertex_normal coordinates are now also transformed but still in world space
+		
 
 			// save this transformed vertex into an array
 			transformed_vertices[j] = transformed_vertex;
@@ -207,7 +220,8 @@ void update(void) {
 		if (backfaceCulling)
 		{
 			// Back face culling
-			vec3_t cameraRay = vec3_subtract(camera_position, vec3_from_vec4(transformed_vertices[0]));
+			vec3_t origin = { 0,0,0 };
+			vec3_t cameraRay = vec3_subtract(origin, vec3_from_vec4(transformed_vertices[0]));
 			float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
 			if (camRayDotFaceNormal < 0)
 				continue;
@@ -223,7 +237,7 @@ void update(void) {
 		lightIntensities[0] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[0], dir_light.direction), 1, -1);
 		lightIntensities[1] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[1], dir_light.direction), 1, -1);
 		lightIntensities[2] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[2], dir_light.direction), 1, -1);
-		
+
 		// Loop all three vertices of this current face
 		// and apply perspective divide to the transformed vertices
 		vec4_t projected_points[3];
@@ -262,9 +276,9 @@ void update(void) {
 			},
 			.color = GOLD,
 			//.avg_depth = avg_depth,
-			.lightIntensities = { 
-				lightIntensities[0], 
-				lightIntensities[1], 
+			.lightIntensities = {
+				lightIntensities[0],
+				lightIntensities[1],
 				lightIntensities[2]
 			},
 		};
@@ -275,7 +289,6 @@ void update(void) {
 		{
 			triangles_to_render[num_triangles_to_render++] = projected_triangle;
 		}
-		
 	}
 	int remainingFaces = array_length(triangles_to_render);
 	// Painters Algorithsm
@@ -299,11 +312,11 @@ void render(void) {
 		}
 		else if (mode == RENDER_FILLED_FLAT)
 		{
-			draw_triangle_shaded(triangle,triangle.color,BLUE,0);
+			draw_triangle_shaded(triangle, triangle.color, BLUE, 0);
 		}
 		else if (mode == RENDER_FILLED_GOURAUD)
 		{
-			draw_triangle_shaded(triangle,triangle.color, RED, 1);
+			draw_triangle_shaded(triangle, triangle.color, RED, 1);
 		}
 		else if (mode == RENDER_TEXTURED)
 		{
@@ -326,13 +339,13 @@ int main(void) {
 	setup();
 
 	while (is_running) {
-		clock_t t = clock();
+		//clock_t t = clock();
 		process_input();
 		update();
 		render();
-		t = clock() - t;
-		double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
-		printf("took %f seconds to draw %d triangles \n", time_taken, array_length(mesh.faces));
+		//t = clock() - t;
+		//double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+		//printf("took %f seconds to draw %d triangles \n", time_taken, array_length(mesh.faces));
 	}
 
 	destroy_window();
