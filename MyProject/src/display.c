@@ -397,7 +397,7 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wirefra
 
 			for (int x = x_start; x < x_end; x++) {
 				// Draw our pixel with a custom color
-				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
+				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
 				draw_texel(x, y, triangle, texture);
 			}
 		}
@@ -423,7 +423,7 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wirefra
 
 			for (int x = x_start; x < x_end; x++) {
 				/// Draw our pixel with a custom color
-				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
+				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
 				draw_texel(x, y, triangle, texture);
 			}
 		}
@@ -461,7 +461,6 @@ void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t bord
 
 			for (int x = x_start; x < x_end; x++) {
 				// Draw our pixel with a custom color
-				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
 				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
 					draw_pixel_shaded(x, y, triangle, shadeMode);
 			}
@@ -488,7 +487,6 @@ void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t bord
 
 			for (int x = x_start; x < x_end; x++) {
 				/// Draw our pixel with a custom color
-				//draw_pixel(x, y, (x % 2 == 0 && y % 2 == 0) ? 0xFFFF00FF : 0x00000000);
 				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
 					draw_pixel_shaded(x, y, triangle, shadeMode);
 			}

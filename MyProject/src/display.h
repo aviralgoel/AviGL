@@ -7,7 +7,7 @@
 #include "triangle.h"'
 
 // have 30 frames every second
-#define FPS 100
+#define FPS 60
 // time in millisecond taken by each frame
 #define FRAME_TARGET_TIME (1000 / FPS)
 

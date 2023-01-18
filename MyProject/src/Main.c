@@ -111,8 +111,35 @@ void process_input(void) {
 		// enable texture and wiring
 		if (event.key.keysym.sym == SDLK_6)
 			mode = RENDER_TEXTURED;
-		if (event.key.keysym.sym == SDLK_p)
+		if (event.key.keysym.sym == SDLK_b)
 			backfaceCulling = !backfaceCulling;
+		// camera input
+		if (event.key.keysym.sym == SDLK_d)
+		{
+			camera.yaw -= 5.0f * delta_time;
+		}
+		if (event.key.keysym.sym == SDLK_a)
+		{
+			camera.yaw += 5.0f * delta_time;
+		}
+		if (event.key.keysym.sym == SDLK_w)
+		{
+			camera.forward_velocity = vec3_multiply(camera.direction, 12 * delta_time);
+			camera.position = vec3_add(camera.position, camera.forward_velocity);
+		}
+		if (event.key.keysym.sym == SDLK_s)
+		{
+			camera.forward_velocity = vec3_multiply(camera.direction, -12 * delta_time);
+			camera.position = vec3_add(camera.position, camera.forward_velocity);
+		}
+		if (event.key.keysym.sym == SDLK_UP)
+		{
+			camera.position.y += 8.0f * delta_time;
+		}
+		if (event.key.keysym.sym == SDLK_DOWN)
+		{
+			camera.position.y -= 8.0f * delta_time;
+		}
 
 		break;
 	}
@@ -132,12 +159,12 @@ void update(void) {
 	previous_frame_time = SDL_GetTicks();
 
 	// rotation per frame
-	mesh.rotation.x += 0.06f;
-	mesh.rotation.y += 0.06f;
-	mesh.rotation.z += 0.06f;
+	//mesh.rotation.x += 0.2f * delta_time;
+	//mesh.rotation.y += 0.2f * delta_time;
+	//mesh.rotation.z += 0.2f * delta_time;
 
 	// translation per frame
-	//mesh.translate.x += 0.02f;
+	//mesh.translate.x += 0.2f * delta_time;
 	//mesh.translate.y += -0.01f;
 	mesh.translate.z = 5.0f;
 
@@ -147,10 +174,15 @@ void update(void) {
 	mesh.scale.z = 2;
 
 	// change camera position per frame
-	//camera.position.x += 0.01f * delta_time;
-	//camera.position.y += 0.01f * delta_time;
+	//camera.position.x += 0.25f * delta_time;
+	//camera.position.y += 0.3f * delta_time;
 	
-	vec3_t target = {0,0,4.0};
+	// Create a view matrix
+
+	vec3_t target = {0,0,1.0};
+	mat4_t camera_yaw_rotation = mat4_make_rotation_y(camera.yaw);
+	camera.direction = mat4_multiply_vec3(camera_yaw_rotation, target);
+	target = vec3_add(camera.position, camera.direction);
 	vec3_t up_direction = { 0,1,0 };
 	camera_view_matrix = mat4_look_at(camera.position, target, up_direction);
 
