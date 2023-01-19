@@ -155,7 +155,7 @@ void update(void) {
 	//if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
 	//	SDL_Delay(time_to_wait);
 	//}
-	delta_time = (SDL_GetTicks() - previous_frame_time)/1000.0;
+	delta_time = (SDL_GetTicks() - previous_frame_time) / 1000.0;
 	previous_frame_time = SDL_GetTicks();
 
 	// rotation per frame
@@ -176,10 +176,10 @@ void update(void) {
 	// change camera position per frame
 	//camera.position.x += 0.25f * delta_time;
 	//camera.position.y += 0.3f * delta_time;
-	
+
 	// Create a view matrix
 
-	vec3_t target = {0,0,1.0};
+	vec3_t target = { 0,0,1.0 };
 	mat4_t camera_yaw_rotation = mat4_make_rotation_y(camera.yaw);
 	camera.direction = mat4_multiply_vec3(camera_yaw_rotation, target);
 	target = vec3_add(camera.position, camera.direction);
@@ -230,11 +230,9 @@ void update(void) {
 
 			// vertex coordinates are now transformed but still in world space
 			transformed_vertex = mat4_multiply_vec4(worldMatrix, transformed_vertex);
-			
+
 			// vertex coordinates are now transformed but now in camera space
 			transformed_vertex = mat4_multiply_vec4(camera_view_matrix, transformed_vertex);
-
-		
 
 			// save this transformed vertex into an array
 			transformed_vertices[j] = transformed_vertex;

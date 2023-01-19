@@ -398,7 +398,7 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wirefra
 			for (int x = x_start; x < x_end; x++) {
 				// Draw our pixel with a custom color
 				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
-				draw_texel(x, y, triangle, texture);
+					draw_texel(x, y, triangle, texture);
 			}
 		}
 	}
@@ -424,7 +424,7 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wirefra
 			for (int x = x_start; x < x_end; x++) {
 				/// Draw our pixel with a custom color
 				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
-				draw_texel(x, y, triangle, texture);
+					draw_texel(x, y, triangle, texture);
 			}
 		}
 	}
