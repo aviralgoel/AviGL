@@ -26,6 +26,11 @@ vec3_t vec3_rotate_z(vec3_t v, float angle) {
 	return rotated_vector;
 }
 #pragma region Vector TWOD Functions
+vec2_t vec2_new(float x, float y)
+{
+	vec2_t result = { x, y };
+	return result;
+}
 float vec2_magnitude(vec2_t v)
 {
 	return sqrt(v.x * v.x + v.y * v.y);
@@ -81,6 +86,11 @@ float vec2_dotProduct(vec2_t a, vec2_t b)
 
 #pragma endregion
 #pragma region Vector THREED Functions
+vec3_t vec3_new(float x, float y, float z)
+{
+	vec3_t result = { x, y,z };
+	return result;
+}
 float vec3_magnitude(vec3_t v)
 {
 	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);

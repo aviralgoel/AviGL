@@ -15,6 +15,7 @@
 #include "texture.h"
 #include "upng.h"
 #include "camera.h"
+#include "clipping.h"
 
 #pragma endregion
 
@@ -69,10 +70,10 @@ void setup(void) {
 	//load_cube_mesh_data();
 	//clock_t t;
 	//t = clock();
-	load_obj_file_data("./assets/efa.obj");
+	load_obj_file_data("./assets/cube.obj");
 	//double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
 	//printf("load_obj_file_data took %f seconds to load %d triangles from the obj file\n", time_taken, array_length(mesh.faces));
-	load_png_texture_data("./assets/efa.png");
+	load_png_texture_data("./assets/cube.png");
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
@@ -84,6 +85,9 @@ void setup(void) {
 
 	// Manually load the texture data from static uint8 array and cast it into uint32
 	//mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
+
+	//Initialize Frustum Planes with a point and a normal
+	init_frustum_planes(fov, znear, zfar);
 }
 
 void process_input(void) {
@@ -196,6 +200,8 @@ void update(void) {
 	// for a cube there are 6 sides = 6*2 triangular faces
 	int numOfFaces = array_length(mesh.faces);
 	for (int i = 0; i < numOfFaces; i++) {
+
+		if (i != 4) continue;
 		// get the face
 		face_t mesh_face = mesh.faces[i];
 		// for each face, fetch its three corresponding vertices (vec3)
@@ -267,6 +273,12 @@ void update(void) {
 		lightIntensities[0] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[0], dir_light.direction), 1, -1);
 		lightIntensities[1] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[1], dir_light.direction), 1, -1);
 		lightIntensities[2] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[2], dir_light.direction), 1, -1);
+
+		// Clipping
+		// Create a polygon from original triangle to be clipped
+		polygon_t polygon = create_polygon_from_triangle(transformed_vertices);
+
+		clip_polygon(&polygon);
 
 		// Loop all three vertices of this current face
 		// and apply perspective divide to the transformed vertices
