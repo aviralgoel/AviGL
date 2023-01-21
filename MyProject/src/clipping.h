@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
 	vec3_t vertices[MAX_NUM_POLY_VERTICES];
-	vec3_t num_vertices;
+	int num_vertices;
 } polygon_t;
 void init_frustum_planes(float fov, float z_near, float z_far);
 polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3]);

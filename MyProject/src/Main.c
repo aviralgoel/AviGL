@@ -79,7 +79,7 @@ void setup(void) {
 	enum  renderMode mode = RENDER_TEXTURED;
 	float fov = degreeToRadian(60);
 	float aspect = (float)window_width / (float)window_height;
-	float znear = 10;
+	float znear = 1;
 	float zfar = 100.0;
 	proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
 
@@ -279,7 +279,7 @@ void update(void) {
 		polygon_t polygon = create_polygon_from_triangle(transformed_vertices);
 
 		clip_polygon(&polygon);
-
+		printf("%d\n", polygon.num_vertices);
 		// Loop all three vertices of this current face
 		// and apply perspective divide to the transformed vertices
 		vec4_t projected_points[3];

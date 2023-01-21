@@ -77,4 +77,58 @@ void clip_polygon(polygon_t* polygon_to_be_clipped)
 
 void clip_polygon_against_plane(polygon_t* polygon_to_be_clipped, int plane)
 {
+	vec3_t plane_point = frutum_planes[plane].point; // P
+	vec3_t plane_normal = frutum_planes[plane].normal; // N
+
+	// array of inside vertices
+	vec3_t inside_vertices[MAX_NUM_POLY_VERTICES];
+	int num_of_inside_vertices = 0;
+
+	// num of vertices in our polygon to be clipped
+	int length_of_polygon_vertices = (polygon_to_be_clipped->num_vertices);
+	// pointer to a current (initially, first vertex in the polygon) vertex and
+	// pointer to a previous (initially, last vertex in the polygon) vertex
+	vec3_t* current_vertex = &polygon_to_be_clipped->vertices[0];
+	vec3_t* previous_vertex = &polygon_to_be_clipped->vertices[length_of_polygon_vertices - 1];
+	vec3_t* last_vertex = &polygon_to_be_clipped->vertices[length_of_polygon_vertices];
+
+	// dotQ1 = n * (Q1-P) ; // dotQ2 = n * (Q2-P)
+	// projection of N on Q1-P (if > 0 ==> inside)
+	float dotProduct_CV = 0;
+	float dotProduct_PV = vec3_dotProduct(vec3_subtract(*previous_vertex, plane_point), plane_normal);
+
+	// loop through all the vertices to check what is inside/outside
+	while (current_vertex != last_vertex)
+	{
+		// dotQ1 = n * (Q1-P) ; // dotQ2 = n * (Q2-P)
+		// projection of N on Q1-P (if > 0 ==> inside)
+		float dotProduct_CV = vec3_dotProduct(vec3_subtract(*current_vertex, plane_point), plane_normal);
+		float dotProduct_PV = vec3_dotProduct(vec3_subtract(*previous_vertex, plane_point), plane_normal);
+
+		// if either one of the vertex is inside-outside || outside-inside
+		if (dotProduct_CV * dotProduct_PV < 0)
+		{
+			// find interpolation factor t (t = Dot1/(DotQ1-DotQ2))
+			// find the intersection point I = Q1 + t(Q2-Q1)
+			float t = dotProduct_PV / (dotProduct_PV - dotProduct_CV);
+			vec3_t intersection_point = vec3_add(*previous_vertex,
+				vec3_multiply(vec3_subtract(*current_vertex, *previous_vertex), t));
+
+			inside_vertices[num_of_inside_vertices++] = vec3_clone(&intersection_point);
+		}
+		if (dotProduct_CV > 0)
+		{
+			inside_vertices[num_of_inside_vertices++] = vec3_clone(current_vertex);
+		}
+
+		dotProduct_PV = dotProduct_CV;
+		previous_vertex = current_vertex;
+		current_vertex++;
+	}
+	// copy list of inside vertices into the incoming polygon itself and then return it
+	for (int i = 0; i < num_of_inside_vertices; i++)
+	{
+		polygon_to_be_clipped->vertices[i] = vec3_clone(&inside_vertices[i]);
+	}
+	polygon_to_be_clipped->num_vertices = num_of_inside_vertices;
 }

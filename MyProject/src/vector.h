@@ -42,6 +42,7 @@ float vec2_dotProduct(vec2_t a, vec2_t b);
 /// <param name="v">vector</param>
 /// <returns></returns>
 vec3_t vec3_new(float x, float y, float z);
+vec3_t vec3_clone(vec3_t* ptrToVector);
 float vec3_magnitude(vec3_t v);
 vec3_t vec3_add(vec3_t a, vec3_t b);
 vec3_t vec3_subtract(vec3_t a, vec3_t b);
