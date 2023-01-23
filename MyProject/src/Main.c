@@ -201,7 +201,7 @@ void update(void) {
 	int numOfFaces = array_length(mesh.faces);
 	for (int i = 0; i < numOfFaces; i++) {
 
-		if (i != 4) continue;
+		//if (i != 4) continue;
 		// get the face
 		face_t mesh_face = mesh.faces[i];
 		// for each face, fetch its three corresponding vertices (vec3)
@@ -279,33 +279,36 @@ void update(void) {
 		polygon_t polygon = create_polygon_from_triangle(transformed_vertices);
 
 		clip_polygon(&polygon);
-		printf("%d\n", polygon.num_vertices);
-		// Loop all three vertices of this current face
-		// and apply perspective divide to the transformed vertices
-		vec4_t projected_points[3];
+		triangle_t triangles_after_clipping[MAX_NUM_TRIANGLES_POLY];
+		int num_triangles_after_clipping = 0;
+		create_triangles_from_polygon(&polygon, triangles_after_clipping, &num_triangles_after_clipping);
 
-		// Loop all three vertices to perform projection
-		for (int j = 0; j < 3; j++) {
-			// Project the current vertex
-			// and now we are in image space
-			projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
-			// Y value of the model ( lower Y -> bottom of the model, higher Y -> top of the model BUT our raster grid is the opposite
-			// lower value is top of the screen and higher value is bottom, therefore, we need to invert/change sign of y-value 0f model
-			projected_points[j].y *= -1;
+		for (int t = 0; t < num_triangles_after_clipping; t++)
+		{
+			triangle_t triangle_post_clipping = triangles_after_clipping[t];
+			// Loop all three vertices to perform projection
+			// Loop all three vertices of this current face
+			// and apply perspective divide to the transformed vertices
+			vec4_t projected_points[3];
+			for (int j = 0; j < 3; j++) {
+				// Loop all three vertices to perform projection
+				// Project the current vertex
+				// and now we are in image space
+				projected_points[j] = mat4_mul_vec4_project(proj_matrix, triangle_post_clipping.points[j]);
+				// Y value of the model ( lower Y -> bottom of the model, higher Y -> top of the model BUT our raster grid is the opposite
+				// lower value is top of the screen and higher value is bottom, therefore, we need to invert/change sign of y-value 0f model
+				projected_points[j].y *= -1;
 
-			// Scale into the view
-			projected_points[j].x *= (window_width / 2.0);
-			projected_points[j].y *= (window_height / 2.0);
+				// Scale into the view
+				projected_points[j].x *= (window_width / 2.0);
+				projected_points[j].y *= (window_height / 2.0);
 
-			// Translate the projected points to the middle of the screen
-			projected_points[j].x += (window_width / 2.0);
-			projected_points[j].y += (window_height / 2.0);
-		}
+				// Translate the projected points to the middle of the screen
+				projected_points[j].x += (window_width / 2.0);
+				projected_points[j].y += (window_height / 2.0);
+			}
 
-		// Calculate the average depth for each face based on the vertices after transformation
-		//float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;
-
-		triangle_t projected_triangle = {
+			triangle_t projected_triangle = {
 			.points = {
 				{ projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w },
 				{ projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w },
@@ -323,16 +326,20 @@ void update(void) {
 				lightIntensities[1],
 				lightIntensities[2]
 			},
-		};
+			};
 
-		// Save the projected triangle in the array of triangles to render
-		//array_push(triangles_to_render, projected_triangle);
-		if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
-		{
-			triangles_to_render[num_triangles_to_render++] = projected_triangle;
-		}
+			// Save the projected triangle in the array of triangles to render
+			//array_push(triangles_to_render, projected_triangle);
+			if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH)
+			{
+				triangles_to_render[num_triangles_to_render++] = projected_triangle;
+			}
+			// Calculate the average depth for each face based on the vertices after transformation
+			//float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0;
+
+		}	
 	}
-	int remainingFaces = array_length(triangles_to_render);
+	//int remainingFaces = array_length(triangles_to_render);
 	// Painters Algorithsm
 	//quicksort_triangles(triangles_to_render, 0, remainingFaces - 1);
 }

@@ -65,6 +65,22 @@ polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3])
 	return polygon;
 }
 
+void create_triangles_from_polygon(polygon_t* poly, triangle_t triangles_after_clipping[], int* numOfTrianglesAfterClipping)
+{
+	for (int i = 0; i < poly->num_vertices-2; i++)
+	{
+		int index0 = 0;
+		int index1 = i + 1;
+		int index2 = i + 2;
+
+		triangles_after_clipping[i].points[0] = vec4_from_vec3(poly->vertices[index0]);
+		triangles_after_clipping[i].points[1] = vec4_from_vec3(poly->vertices[index1]);
+		triangles_after_clipping[i].points[2] = vec4_from_vec3(poly->vertices[index2]);
+		
+	}
+	*numOfTrianglesAfterClipping = poly->num_vertices - 2;
+}
+
 void clip_polygon(polygon_t* polygon_to_be_clipped)
 {
 	clip_polygon_against_plane(polygon_to_be_clipped, LEFT_FRUSTUM_PLANE);
