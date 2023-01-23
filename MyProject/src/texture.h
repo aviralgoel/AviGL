@@ -19,3 +19,4 @@ extern upng_t* png_texture;
 
 void load_png_texture_data(char* filename);
 void free_png_texture(upng_t* png_tex);
+tex2_t tex2_clone(tex2_t* t);

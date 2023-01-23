@@ -53,7 +53,7 @@ void init_frustum_planes(float fovx, float fovy,  float z_near, float z_far)
 	frutum_planes[BOTTOM_FRUSTUM_PLANE].normal.z = sin_fovBy2_Y;
 }
 
-polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3])
+polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3], tex2_t initialTex[3])
 {	
 	// Three vertices (homegenous) of an incoming triangle, which is to be clipped
 	vec3_t vertex_0 = vec3_from_vec4(triangle_to_clipped[0]);
@@ -62,7 +62,8 @@ polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3])
 
 	polygon_t polygon = {
 		.num_vertices = 3,
-		.vertices = {vertex_0,vertex_1,vertex_2}
+		.vertices = {vertex_0,vertex_1,vertex_2},
+		.texCoods = {initialTex[0], initialTex[1], initialTex[2]}
 	};
 
 	return polygon;
@@ -79,6 +80,9 @@ void create_triangles_from_polygon(polygon_t* poly, triangle_t triangles_after_c
 		triangles_after_clipping[i].points[0] = vec4_from_vec3(poly->vertices[index0]);
 		triangles_after_clipping[i].points[1] = vec4_from_vec3(poly->vertices[index1]);
 		triangles_after_clipping[i].points[2] = vec4_from_vec3(poly->vertices[index2]);
+		triangles_after_clipping[i].texcoords[0] = poly->texCoods[index0];
+		triangles_after_clipping[i].texcoords[1] = poly->texCoods[index1];
+		triangles_after_clipping[i].texcoords[2] = poly->texCoods[index2];
 		
 	}
 	*numOfTrianglesAfterClipping = poly->num_vertices - 2;
@@ -101,6 +105,7 @@ void clip_polygon_against_plane(polygon_t* polygon_to_be_clipped, int plane)
 
 	// array of inside vertices
 	vec3_t inside_vertices[MAX_NUM_POLY_VERTICES];
+	tex2_t inside_texcoords[MAX_NUM_POLY_VERTICES];
 	int num_of_inside_vertices = 0;
 
 	// num of vertices in our polygon to be clipped
@@ -108,7 +113,11 @@ void clip_polygon_against_plane(polygon_t* polygon_to_be_clipped, int plane)
 	// pointer to a current (initially, first vertex in the polygon) vertex and
 	// pointer to a previous (initially, last vertex in the polygon) vertex
 	vec3_t* current_vertex = &polygon_to_be_clipped->vertices[0];
+	tex2_t* current_texcoord = &polygon_to_be_clipped->texCoods[0];
+
 	vec3_t* previous_vertex = &polygon_to_be_clipped->vertices[length_of_polygon_vertices - 1];
+	tex2_t* previous_texcoord = &polygon_to_be_clipped->texCoods[length_of_polygon_vertices - 1];
+
 	vec3_t* last_vertex = &polygon_to_be_clipped->vertices[length_of_polygon_vertices];
 
 	// dotQ1 = n * (Q1-P) ; // dotQ2 = n * (Q2-P)
@@ -132,22 +141,32 @@ void clip_polygon_against_plane(polygon_t* polygon_to_be_clipped, int plane)
 			float t = dotProduct_PV / (dotProduct_PV - dotProduct_CV);
 			vec3_t intersection_point = vec3_add(*previous_vertex,
 				vec3_multiply(vec3_subtract(*current_vertex, *previous_vertex), t));
+			tex2_t interpolated_texure;
+			interpolated_texure.u = previous_texcoord->u + ((current_texcoord->u - previous_texcoord->u) * t);
+			interpolated_texure.v = previous_texcoord->v + ((current_texcoord->v - previous_texcoord->v) * t);
+			inside_texcoords[num_of_inside_vertices] = tex2_clone(&interpolated_texure);
+			inside_vertices[num_of_inside_vertices] = vec3_clone(&intersection_point);
 
-			inside_vertices[num_of_inside_vertices++] = vec3_clone(&intersection_point);
+			num_of_inside_vertices++;
 		}
 		if (dotProduct_CV > 0)
 		{
-			inside_vertices[num_of_inside_vertices++] = vec3_clone(current_vertex);
+			inside_vertices[num_of_inside_vertices] = vec3_clone(current_vertex);
+			inside_texcoords[num_of_inside_vertices] = tex2_clone(current_texcoord);
+			num_of_inside_vertices++;
 		}
 
 		dotProduct_PV = dotProduct_CV;
 		previous_vertex = current_vertex;
+		previous_texcoord = current_texcoord;
 		current_vertex++;
+		current_texcoord++;
 	}
 	// copy list of inside vertices into the incoming polygon itself and then return it
 	for (int i = 0; i < num_of_inside_vertices; i++)
 	{
 		polygon_to_be_clipped->vertices[i] = vec3_clone(&inside_vertices[i]);
+		polygon_to_be_clipped->texCoods[i] = tex2_clone(&inside_texcoords[i]);
 	}
 	polygon_to_be_clipped->num_vertices = num_of_inside_vertices;
 }

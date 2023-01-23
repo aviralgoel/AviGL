@@ -21,3 +21,9 @@ void free_png_texture(upng_t* png_tex)
 {
 	upng_free(png_tex);
 }
+
+tex2_t tex2_clone(tex2_t* t)
+{
+	tex2_t result = { t->u, t->v };
+	return result;
+}

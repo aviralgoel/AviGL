@@ -279,7 +279,11 @@ void update(void) {
 
 		// Clipping
 		// Create a polygon from original triangle to be clipped
-		polygon_t polygon = create_polygon_from_triangle(transformed_vertices);
+		tex2_t intialTexCoords[3];
+		intialTexCoords[0] = mesh_face.a_uv; 
+		intialTexCoords[1] = mesh_face.b_uv; 
+		intialTexCoords[2] = mesh_face.c_uv;
+		polygon_t polygon = create_polygon_from_triangle(transformed_vertices, intialTexCoords);
 
 		clip_polygon(&polygon);
 		triangle_t triangles_after_clipping[MAX_NUM_TRIANGLES_POLY];
@@ -318,9 +322,9 @@ void update(void) {
 				{ projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w },
 			},
 			.texcoords = {
-				{mesh_face.a_uv.u, mesh_face.a_uv.v},
-				{mesh_face.b_uv.u, mesh_face.b_uv.v},
-				{mesh_face.c_uv.u, mesh_face.c_uv.v},
+				{triangles_after_clipping[t].texcoords[0].u, triangles_after_clipping[t].texcoords[0].v},
+				{triangles_after_clipping[t].texcoords[1].u, triangles_after_clipping[t].texcoords[1].v},
+				{triangles_after_clipping[t].texcoords[2].u, triangles_after_clipping[t].texcoords[2].v},
 			},
 			.color = GOLD,
 			//.avg_depth = avg_depth,
