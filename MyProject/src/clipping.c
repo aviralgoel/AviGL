@@ -3,10 +3,13 @@
 #define NUM_PLANES 6
 
 plane_t frutum_planes[NUM_PLANES];
-void init_frustum_planes(float fov, float z_near, float z_far)
+void init_frustum_planes(float fovx, float fovy,  float z_near, float z_far)
 {
-	float cos_fovBy2 = cos(fov / 2);
-	float sin_fovBy2 = sin(fov / 2);
+	float cos_fovBy2_X = cos(fovx / 2);
+	float sin_fovBy2_X = sin(fovx / 2);
+
+	float cos_fovBy2_Y = cos(fovy / 2);
+	float sin_fovBy2_Y = sin(fovy / 2);
 
 	vec3_t origin = { 0,0,0 };
 	// Near Plane : P = (0, 0, znear), N = (0, 0, 1)
@@ -27,27 +30,27 @@ void init_frustum_planes(float fov, float z_near, float z_far)
 
 	// Right Plane : P = (0, 0, 0), N = (-cos(fov/2), 0, sin(fov/2))
 	frutum_planes[RIGHT_FRUSTUM_PLANE].point = origin;
-	frutum_planes[RIGHT_FRUSTUM_PLANE].normal.x = (-1.0f) * (cos_fovBy2);
+	frutum_planes[RIGHT_FRUSTUM_PLANE].normal.x = (-1.0f) * (cos_fovBy2_X);
 	frutum_planes[RIGHT_FRUSTUM_PLANE].normal.y = 0;
-	frutum_planes[RIGHT_FRUSTUM_PLANE].normal.z = sin_fovBy2;
+	frutum_planes[RIGHT_FRUSTUM_PLANE].normal.z = sin_fovBy2_X;
 
 	// Left Plane : P = (0, 0, 0), N = (cos(fov/2), 0, sin(fov/2))
 	frutum_planes[LEFT_FRUSTUM_PLANE].point = origin;
-	frutum_planes[LEFT_FRUSTUM_PLANE].normal.x = cos_fovBy2;
+	frutum_planes[LEFT_FRUSTUM_PLANE].normal.x = cos_fovBy2_X;
 	frutum_planes[LEFT_FRUSTUM_PLANE].normal.y = 0;
-	frutum_planes[LEFT_FRUSTUM_PLANE].normal.z = sin_fovBy2;
+	frutum_planes[LEFT_FRUSTUM_PLANE].normal.z = sin_fovBy2_X;
 
 	// Top Plane : P = (0, 0, 0), N = (0, -cos(fov/2), sin(fov/2))
 	frutum_planes[TOP_FRUSTUM_PLANE].point = origin;
 	frutum_planes[TOP_FRUSTUM_PLANE].normal.x = 0;
-	frutum_planes[TOP_FRUSTUM_PLANE].normal.y = (-1.0f) * (cos_fovBy2);
-	frutum_planes[TOP_FRUSTUM_PLANE].normal.z = sin_fovBy2;
+	frutum_planes[TOP_FRUSTUM_PLANE].normal.y = (-1.0f) * (cos_fovBy2_Y);
+	frutum_planes[TOP_FRUSTUM_PLANE].normal.z = sin_fovBy2_Y;
 
 	// Bottom Plane : P = (0, 0, 0), N = (0, cos(fov/2), sin(fov/2))
 	frutum_planes[BOTTOM_FRUSTUM_PLANE].point = origin;
 	frutum_planes[BOTTOM_FRUSTUM_PLANE].normal.x = 0;
-	frutum_planes[BOTTOM_FRUSTUM_PLANE].normal.y = cos_fovBy2;
-	frutum_planes[BOTTOM_FRUSTUM_PLANE].normal.z = sin_fovBy2;
+	frutum_planes[BOTTOM_FRUSTUM_PLANE].normal.y = cos_fovBy2_Y;
+	frutum_planes[BOTTOM_FRUSTUM_PLANE].normal.z = sin_fovBy2_Y;
 }
 
 polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3])

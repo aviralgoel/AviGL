@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <SDL.h>
+#include <math.h>
 #include "array.h"
 #include "display.h"
 #include "vector.h"
@@ -77,17 +78,19 @@ void setup(void) {
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
-	float fov = degreeToRadian(60);
-	float aspect = (float)window_width / (float)window_height;
+	float fovy = degreeToRadian(60);
+	float aspectx = (float)window_width / (float)window_height;
+	float aspecty = (float)window_height / (float)window_width;
+	float fovx = 2 * atan(tan(fovy / 2) * aspectx);
 	float znear = 1;
 	float zfar = 100.0;
-	proj_matrix = mat4_make_perspective(fov, aspect, znear, zfar);
+	proj_matrix = mat4_make_perspective(fovy, aspecty, znear, zfar);
 
 	// Manually load the texture data from static uint8 array and cast it into uint32
 	//mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
 
 	//Initialize Frustum Planes with a point and a normal
-	init_frustum_planes(fov, znear, zfar);
+	init_frustum_planes(fovx, fovy, znear, zfar);
 }
 
 void process_input(void) {
