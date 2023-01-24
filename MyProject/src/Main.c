@@ -71,10 +71,10 @@ void setup(void) {
 	//load_cube_mesh_data();
 	//clock_t t;
 	//t = clock();
-	load_obj_file_data("./assets/cube.obj");
+	load_obj_file_data("./assets/f117.obj");
 	//double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
 	//printf("load_obj_file_data took %f seconds to load %d triangles from the obj file\n", time_taken, array_length(mesh.faces));
-	load_png_texture_data("./assets/cube.png");
+	load_png_texture_data("./assets/f117.png");
 
 	//rendering mode
 	enum  renderMode mode = RENDER_TEXTURED;
