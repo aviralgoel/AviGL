@@ -172,7 +172,6 @@ void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode)
 		float w0, w2, w1;
 
 		w0 = t.points[0].w; 	w1 = t.points[1].w; 	w2 = t.points[2].w;
-		//w0 = 1; 	w1 = 1; 	w2 = 1;
 
 		float A = w1 * w2 * alpha;
 		float B = w0 * w2 * beta;
@@ -189,7 +188,6 @@ void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode)
 		}
 	}
 }
-
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
