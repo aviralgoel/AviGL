@@ -39,12 +39,10 @@ int sorter_descending(const void* first_arg, const void* second_arg)
 		return 1;
 	}
 }
-
 float degreeToRadian(float degAngle)
 {
 	return (PI) * (degAngle / 180);
 }
-
 int partition_triangle_array(triangle_t arr[], int first_index, int last_index, float pivot)
 {
 	// Store a swap index
@@ -69,7 +67,6 @@ int partition_triangle_array(triangle_t arr[], int first_index, int last_index, 
 	// All elements up to arr[i] should be larger than the pivot so return the pivot index
 	return i;
 }
-
 void quicksort_triangles(triangle_t arr[], int first_index, int last_index)
 {
 	if (first_index >= last_index) return;

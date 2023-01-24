@@ -1,7 +1,8 @@
 #include "triangle.h"
 
 /// <summary>
-/// accepts a triangle with vertex in any order, return a triangle where y0 &lt; y1 &lt; y2
+/// accepts a triangle with vertex in any order, return a triangle where y0 is the vertex
+/// with highest y value
 /// </summary>
 /// <param name="unsorted"></param>
 /// <returns></returns>
@@ -10,6 +11,7 @@ triangle_t sortVertsByY(triangle_t unsorted)
 	int x0 = unsorted.points[0].x, y0 = unsorted.points[0].y,
 		x1 = unsorted.points[1].x, y1 = unsorted.points[1].y,
 		x2 = unsorted.points[2].x, y2 = unsorted.points[2].y;
+
 	float z0, z1, z2, w1, w0, w2;
 	z0 = unsorted.points[0].z, w0 = unsorted.points[0].w,
 		z1 = unsorted.points[1].z, w1 = unsorted.points[1].w,

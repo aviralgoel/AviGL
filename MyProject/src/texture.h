@@ -2,6 +2,7 @@
 
 #include<stdint.h>
 #include "upng.h"
+
 typedef struct {
 	float u;
 	float v;

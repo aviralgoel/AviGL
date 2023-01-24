@@ -3,7 +3,7 @@
 #define NUM_PLANES 6
 
 plane_t frutum_planes[NUM_PLANES];
-void init_frustum_planes(float fovx, float fovy,  float z_near, float z_far)
+void init_frustum_planes(float fovx, float fovy, float z_near, float z_far)
 {
 	float cos_fovBy2_X = cos(fovx / 2);
 	float sin_fovBy2_X = sin(fovx / 2);
@@ -54,7 +54,7 @@ void init_frustum_planes(float fovx, float fovy,  float z_near, float z_far)
 }
 
 polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3], tex2_t initialTex[3])
-{	
+{
 	// Three vertices (homegenous) of an incoming triangle, which is to be clipped
 	vec3_t vertex_0 = vec3_from_vec4(triangle_to_clipped[0]);
 	vec3_t vertex_1 = vec3_from_vec4(triangle_to_clipped[1]);
@@ -71,7 +71,7 @@ polygon_t create_polygon_from_triangle(vec4_t triangle_to_clipped[3], tex2_t ini
 
 void create_triangles_from_polygon(polygon_t* poly, triangle_t triangles_after_clipping[], int* numOfTrianglesAfterClipping)
 {
-	for (int i = 0; i < poly->num_vertices-2; i++)
+	for (int i = 0; i < poly->num_vertices - 2; i++)
 	{
 		int index0 = 0;
 		int index1 = i + 1;
@@ -83,7 +83,6 @@ void create_triangles_from_polygon(polygon_t* poly, triangle_t triangles_after_c
 		triangles_after_clipping[i].texcoords[0] = poly->texCoods[index0];
 		triangles_after_clipping[i].texcoords[1] = poly->texCoods[index1];
 		triangles_after_clipping[i].texcoords[2] = poly->texCoods[index2];
-		
 	}
 	*numOfTrianglesAfterClipping = poly->num_vertices - 2;
 }

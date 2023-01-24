@@ -17,7 +17,6 @@ mat4_t mat4_make_identity(void)
 
 	return m;
 }
-
 mat4_t mat4_make_rotation_z(const float theta)
 {
 	/* Visual Representation
@@ -57,7 +56,6 @@ mat4_t mat4_make_rotation_x(const float theta)
 	m.m[2][1] = sin(theta); m.m[2][2] = cos(theta);
 	return m;
 }
-
 mat4_t mat4_make_scale(float sx, float sy, float sz)
 {
 	/* Visual Representation
@@ -72,7 +70,7 @@ mat4_t mat4_make_scale(float sx, float sy, float sz)
 }
 // Takes in world space and spits out image space (As far as I understand)
 mat4_t mat4_make_perspective(float fov, float aspect, float znear, float zfar) {
-	// | 1/tan(fov/2)*(aspect)             0              0                 0 |
+	// | 1/tan(fov/2)*(aspect)             0           0              0	   |
 	// |                  0  1/tan(fov/2)              0                 0 |
 	// |                  0             0     zf/(zf-zn)  (-zf*zn)/(zf-zn) |
 	// |                  0             0              1                 0 |
@@ -84,7 +82,6 @@ mat4_t mat4_make_perspective(float fov, float aspect, float znear, float zfar) {
 	m.m[3][2] = 1.0;
 	return m;
 }
-
 vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v) {
 	// multiply the projection matrix by our original vector
 	vec4_t result = mat4_multiply_vec4(mat_proj, v);
@@ -97,7 +94,6 @@ vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v) {
 	}
 	return result;
 }
-
 mat4_t mat4_make_translate(float tx, float ty, float tz)
 {	/* Visual Representation
 	| 1 0 0 Tx |
@@ -112,7 +108,6 @@ mat4_t mat4_make_translate(float tx, float ty, float tz)
 
 	return tMat;
 }
-
 mat4_t mat4_multiply_mat4(mat4_t matA, mat4_t matB)
 {
 	mat4_t result = mat4_make_identity();
@@ -129,7 +124,6 @@ mat4_t mat4_multiply_mat4(mat4_t matA, mat4_t matB)
 	}
 	return result;
 }
-
 vec3_t mat4_multiply_vec3(mat4_t mat, vec3_t v)
 {
 	const vec3_t result = {
@@ -140,7 +134,6 @@ vec3_t mat4_multiply_vec3(mat4_t mat, vec3_t v)
 
 	return result;
 }
-
 vec4_t mat4_multiply_vec4(mat4_t mat, vec4_t v)
 {
 	const vec4_t result = {
@@ -151,7 +144,6 @@ vec4_t mat4_multiply_vec4(mat4_t mat, vec4_t v)
 	};
 	return result;
 }
-
 mat4_t mat4_look_at(vec3_t eye, vec3_t target, vec3_t up)
 {
 	vec3_t z = vec3_subtract(target, eye); 	vec3_normalize(&z);
