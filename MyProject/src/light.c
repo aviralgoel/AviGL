@@ -1,5 +1,13 @@
 #include "light.h"
 
+
+static light_t dir_light;
+
+void init_light(vec3_t direction)
+{
+	dir_light.direction = direction;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Change color based on a percentage factor to represent light intensity
 // Alternative to Phong Lighting Model
@@ -17,4 +25,8 @@ uint32_t light_apply_intensity(uint32_t original_color, float percentage_factor)
 	uint32_t new_color = a | (r & 0x00FF0000) | (g & 0x0000FF00) | (b & 0x000000FF);
 
 	return new_color;
+}
+vec3_t get_light_direction()
+{
+	return dir_light.direction;
 }

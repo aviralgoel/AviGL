@@ -35,43 +35,14 @@ mat4_t camera_view_matrix; // World to Camera Space Matrix
 mat4_t proj_matrix; // Camera Space to NDC Matrix
 
 // lighting in the scene
-light_t dir_light = { .direction = {1,1,-1} };
 
 bool is_running = false;
-bool backfaceCulling = true;
 bool paintersAlgorithm = true;
 int previous_frame_time = 0;
 float delta_time = 0;
 
-// Available rendering modes
-enum renderMode {
-	RENDER_WIREFRAME,
-	RENDER_FILLED_FLAT,
-	RENDER_FILLED_GOURAUD,
-	RENDER_WIRE_FILLED,
-	RENDER_TEXTURED,
-	RENDER_TEXTURED_WIRE
-};
-
-// Current Render Mode
-enum  renderMode mode;
-
 void setup(void) {
-	// Function to any/all kind test code for debugging
-	//playground();
 
-	// Allocate the required memory in bytes to hold the color buffer and z_buffer
-	color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
-	z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
-
-	// Creating a SDL texture that is used to display the color buffer
-	color_buffer_texture = SDL_CreateTexture(
-		renderer,
-		SDL_PIXELFORMAT_RGBA32,
-		SDL_TEXTUREACCESS_STREAMING,
-		window_width,
-		window_height
-	);
 
 	// Manually load hard coded cube mesh data (for debugging)
 	//load_cube_mesh_data();
@@ -81,10 +52,12 @@ void setup(void) {
 	load_png_texture_data("./assets/f117.png");
 
 	// defaut setting of the renderer
-	enum  renderMode mode = RENDER_TEXTURED;
+	set_render_method(RENDER_FILLED_FLAT);
+	set_cull_method(CULL_BACKFACE);
+
 	float fovy = degreeToRadian(60);
-	float aspectx = (float)window_width / (float)window_height;
-	float aspecty = (float)window_height / (float)window_width;
+	float aspectx = (float)get_window_width() / (float)get_window_height();
+	float aspecty = (float)get_window_height() / (float)get_window_width();
 	float fovx = 2 * atan(tan(fovy / 2) * aspectx);
 	float znear = 1;
 	float zfar = 100.0;
@@ -97,70 +70,123 @@ void setup(void) {
 
 	//Initialize Frustum Planes with a point and a normal
 	init_frustum_planes(fovx, fovy, znear, zfar);
+
+	// intialize lighting
+	init_light(vec3_new( 1,1,-1 ));
 }
 
 // Check for user input
 void process_input(void) {
 	SDL_Event event;
-	SDL_PollEvent(&event);
-
-	switch (event.type) {
-	case SDL_QUIT:
-		is_running = false;
-		break;
-	case SDL_KEYDOWN:
-		// quit
-		if (event.key.keysym.sym == SDLK_ESCAPE)
-			is_running = false;
-		// rendering modes
-		if (event.key.keysym.sym == SDLK_1)
-			mode = RENDER_WIREFRAME;
-		if (event.key.keysym.sym == SDLK_2)
-			mode = RENDER_WIRE_FILLED;
-		if (event.key.keysym.sym == SDLK_3)
-			mode = RENDER_FILLED_FLAT;
-		if (event.key.keysym.sym == SDLK_4)
-			mode = RENDER_FILLED_GOURAUD;
-
-		// enable texturing
-		if (event.key.keysym.sym == SDLK_5)
-			mode = RENDER_TEXTURED_WIRE;
-		// enable texture and wiring
-		if (event.key.keysym.sym == SDLK_6)
-			mode = RENDER_TEXTURED;
-		// back face culling
-		if (event.key.keysym.sym == SDLK_b)
-			backfaceCulling = !backfaceCulling;
-
-		// camera input
-		if (event.key.keysym.sym == SDLK_d)
-		{
-			camera.yaw -= 5.0f * delta_time;
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type) {
+		case SDL_QUIT:
+			is_running = false; break;
+		case SDL_KEYDOWN:
+			// quit
+			if (event.key.keysym.sym == SDLK_ESCAPE)
+			{
+				is_running = false;
+				break;
+			}
+			// rendering modes
+			if (event.key.keysym.sym == SDLK_1)
+			{
+				set_render_method(RENDER_WIREFRAME);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_2)
+			{
+				set_render_method(RENDER_WIRE_FILLED);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_3)
+			{
+				set_render_method(RENDER_FILLED_FLAT);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_4)
+			{
+				set_render_method(RENDER_FILLED_GOURAUD);
+				break;
+			}
+			// enable texturing
+			if (event.key.keysym.sym == SDLK_5)
+			{
+				set_render_method(RENDER_TEXTURED_WIRE);
+				break;
+			}
+			// enable texture and wiring
+			if (event.key.keysym.sym == SDLK_6)
+			{
+				set_render_method(RENDER_TEXTURED);
+				break;
+			}
+			// back face culling
+			if (event.key.keysym.sym == SDLK_b)
+			{
+				set_cull_method(CULL_BACKFACE);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_n)
+			{
+				set_cull_method(CULL_NONE);
+				break;
+			}
+			// camera input
+			if (event.key.keysym.sym == SDLK_d)
+			{
+				set_camera_yaw(-5.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_a)
+			{
+				set_camera_yaw(5.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_d)
+			{
+				set_camera_yaw(-5.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_a)
+			{
+				set_camera_yaw(5.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_w)
+			{
+				set_camera_position(12 * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_s)
+			{
+				set_camera_position(-12.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_UP)
+			{
+				set_camera_positionY(12.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_DOWN)
+			{
+				set_camera_positionY(-12.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_q)
+			{
+				set_camera_pitch(-2.0f * delta_time);
+				break;
+			}
+			if (event.key.keysym.sym == SDLK_e)
+			{
+				set_camera_pitch(2.0f * delta_time);
+				break;
+			}
+			break;
 		}
-		if (event.key.keysym.sym == SDLK_a)
-		{
-			camera.yaw += 5.0f * delta_time;
-		}
-		if (event.key.keysym.sym == SDLK_w)
-		{
-			camera.forward_velocity = vec3_multiply(camera.direction, 12 * delta_time);
-			camera.position = vec3_add(camera.position, camera.forward_velocity);
-		}
-		if (event.key.keysym.sym == SDLK_s)
-		{
-			camera.forward_velocity = vec3_multiply(camera.direction, -12 * delta_time);
-			camera.position = vec3_add(camera.position, camera.forward_velocity);
-		}
-		if (event.key.keysym.sym == SDLK_UP)
-		{
-			camera.position.y += 8.0f * delta_time;
-		}
-		if (event.key.keysym.sym == SDLK_DOWN)
-		{
-			camera.position.y -= 8.0f * delta_time;
-		}
-
-		break;
 	}
 }
 
@@ -201,18 +227,12 @@ void update(void) {
 	//camera.position.x += 0.25f * delta_time;
 	//camera.position.y += 0.3f * delta_time;
 
-	// camera lootAt target
-	vec3_t target = { 0,0,1.0 };
-	// rotate camera based on yaw value (based on user input)
-	mat4_t camera_yaw_rotation = mat4_make_rotation_y(camera.yaw);
-
-	camera.direction = mat4_multiply_vec3(camera_yaw_rotation, target);
-	target = vec3_add(camera.position, camera.direction);
 	// camera up direction
 	vec3_t up_direction = { 0,1,0 };
-
+	
+	vec3_t target = get_camera_lookAt_target();
 	// create a camera lookAt/ world-to-camera view matrix
-	camera_view_matrix = mat4_look_at(camera.position, target, up_direction);
+	camera_view_matrix = mat4_look_at(get_camera_position(), target, up_direction);
 
 	// creating scale, translate, and rotation matrices
 	mat4_t scaleMatrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
@@ -281,7 +301,7 @@ void update(void) {
 		vec3_normalize(&normalToABC);
 
 		// Back face culling on/off
-		if (backfaceCulling)
+		if (is_cull_backface)
 		{
 			// Back face culling
 			vec3_t origin = { 0,0,0 }; // our camera is at the origin of camera space
@@ -292,15 +312,15 @@ void update(void) {
 		}
 
 		// Flat Shading, based on the dot product between light and the face normal
-		float lightEffect = normalizeInRange(vec3_dotProduct(normalToABC, dir_light.direction), 1, -1);
+		float lightEffect = normalizeInRange(vec3_dotProduct(normalToABC, get_light_direction()), 1, -1);
 		mesh_face.color = GREEN; // RED
 		mesh_face.color = light_apply_intensity(mesh_face.color, lightEffect);
 
 		// Gouraud Shading, calculate light effect for each vertex
 		float lightIntensities[3];
-		lightIntensities[0] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[0], dir_light.direction), 1, -1);
-		lightIntensities[1] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[1], dir_light.direction), 1, -1);
-		lightIntensities[2] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[2], dir_light.direction), 1, -1);
+		lightIntensities[0] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[0], get_light_direction()), 1, -1);
+		lightIntensities[1] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[1], get_light_direction()), 1, -1);
+		lightIntensities[2] = normalizeInRange(vec3_dotProduct(transformed_vertices_normals[2], get_light_direction()), 1, -1);
 
 		// Camera Frustum Clipping
 		// Create a polygon from original triangle to be clipped
@@ -337,12 +357,12 @@ void update(void) {
 				projected_points[j].y *= -1;
 
 				// Scale into the view
-				projected_points[j].x *= (window_width / 2.0);
-				projected_points[j].y *= (window_height / 2.0);
+				projected_points[j].x *= (get_window_width() / 2.0);
+				projected_points[j].y *= (get_window_height() / 2.0);
 
 				// Translate the projected points to the middle of the screen
-				projected_points[j].x += (window_width / 2.0);
-				projected_points[j].y += (window_height / 2.0);
+				projected_points[j].x += (get_window_width() / 2.0);
+				projected_points[j].y += (get_window_height() / 2.0);
 			}
 
 			triangle_t projected_triangle = {
@@ -381,42 +401,43 @@ void update(void) {
 }
 
 void render(void) {
+	clear_color_buffer(0xFF000000);
+	clear_z_buffer();
 	draw_grid();
+
 	//int numOfTriangles = array_length(triangles_to_render);
 	// Loop all projected triangles and render them
 	for (int i = 0; i < num_triangles_to_render; i++) {
 		triangle_t triangle = triangles_to_render[i];
 		//draw_triangle_filled(triangle, RED, PURPLE, true);
-		if (mode == RENDER_WIREFRAME)
+		if (get_render_method() == RENDER_WIREFRAME)
 		{
 			draw_triangle(triangle, RED, false);
 		}
-		else if (mode == RENDER_WIRE_FILLED)
+		else if (get_render_method() == RENDER_WIRE_FILLED)
 		{
 			draw_triangle(triangle, RED, true);
 		}
-		else if (mode == RENDER_FILLED_FLAT)
+		else if (get_render_method() == RENDER_FILLED_FLAT)
 		{
 			draw_triangle_shaded(triangle, triangle.color, BLUE, 0);
 		}
-		else if (mode == RENDER_FILLED_GOURAUD)
+		else if (get_render_method() == RENDER_FILLED_GOURAUD)
 		{
 			draw_triangle_shaded(triangle, triangle.color, RED, 1);
 		}
-		else if (mode == RENDER_TEXTURED)
+		else if (get_render_method() == RENDER_TEXTURED)
 		{
 			draw_triangle_textured(triangle, mesh_texture, false);
 		}
-		else if (mode == RENDER_TEXTURED_WIRE)
+		else if (get_render_method() == RENDER_TEXTURED_WIRE)
 		{
 			draw_triangle_textured(triangle, mesh_texture, true);
 		}
 	}
 	//array_free(triangles_to_render);
 	render_color_buffer();
-	clear_color_buffer(0xFF000000);
-	clear_z_buffer();
-	SDL_RenderPresent(renderer);
+
 }
 int main(void) {
 	is_running = initialize_window();
@@ -439,8 +460,6 @@ void free_resources(void)
 	array_free(mesh.vertices);
 	array_free(mesh.texcoords);
 	array_free(mesh.vertex_normals);
-	free(color_buffer);
-	free(z_buffer);
 	free_png_texture(png_texture);
 }
 

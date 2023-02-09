@@ -16,21 +16,37 @@
 #define BLUE (0xFFFF0000) // RGB 0000FF
 #define GREEN (0x0000FF00) // RGB 00FF00
 #define GOLD (0xFF00D7FF) // RGB FFD700
-
 #define PURPLE (0xFFA020F0)
 #define WHITE (0xFFFFFFFF)
 #define YELLOW (0xFFFFFF00)
 #pragma endregion Color Macros
 
-extern SDL_Window* window;
-extern SDL_Renderer* renderer;
-extern uint32_t* color_buffer;
-extern float* z_buffer;
-extern SDL_Texture* color_buffer_texture;
-extern int window_width;
-extern int window_height;
+// supported rendering modes
+enum renderMode {
+	RENDER_WIREFRAME,
+	RENDER_FILLED_FLAT,
+	RENDER_FILLED_GOURAUD,
+	RENDER_WIRE_FILLED,
+	RENDER_TEXTURED,
+	RENDER_TEXTURED_WIRE
+};
+
+// supported culling methods
+enum cull_method {
+	CULL_NONE,
+	CULL_BACKFACE
+};
 
 bool initialize_window(void);
+int get_window_width(void);
+int get_window_height(void);
+int get_cull_method(void);
+int get_render_method(void);
+void set_render_method(int method);
+void set_cull_method(int method);
+bool is_cull_backface();
+
+
 #pragma region drawing primitives
 void draw_grid(void);
 void draw_circle(float radius, uint32_t color);
