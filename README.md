@@ -16,6 +16,7 @@ Things I've *IMPLEMENTED* so far...
 7. Directional Lights and Flat Shading
 8. Texture Mapping (PNG Textures) and Baycentric Coordinates
 9. Perspective Correction
+10. Camera View Frustum Clipping 
 
     
 ## Result
