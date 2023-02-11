@@ -22,8 +22,8 @@ Things I've *IMPLEMENTED* so far...
     
 ## Result
 <!---
-//![backface_culling](https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo.gif) -->
-<img src="https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo.gif" width="640" height="320" />
+//![backface_culling](https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo00.gif) -->
+<img src="https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo00.gif" width="640" height="320" />
 
 ## Motivation
 
