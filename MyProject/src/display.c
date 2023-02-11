@@ -150,7 +150,7 @@ void draw_pixel(int x, int y, uint32_t color) {
 	}
 }
 // maps a pixel coordinate to the texture image using u,v of a given triangle and the pixel inside it.
-void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
+void draw_texel(int pixelX, int pixelY, triangle_t t)
 {
 	// the three vertices of the triangle and the Point P where texture needs to be determined.
 	vec2_t point_a = { .x = t.points[0].x, .y = t.points[0].y };
@@ -185,6 +185,10 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 	float interpolated_reciprocal_w = (A + B + C) / (w1 * w2 * w0);
 	interpolated_reciprocal_w = 1 - interpolated_reciprocal_w;
 	int zIndex = ((window_width * pixelY) + pixelX) % (window_width * window_height);
+	// Get the texture buffer, width and height of the texture that is associated with the mesh this triangle belongs to
+	int texture_width = upng_get_width(t.texture);
+	int texture_height = upng_get_height(t.texture);
+	uint32_t* texture_buffer = (uint32_t*)upng_get_buffer(t.texture);
 	if (interpolated_reciprocal_w < z_buffer[zIndex])
 	{
 		int tex_x = abs((int)(interpolated_u * (texture_width - 1))) % texture_width;
@@ -195,7 +199,7 @@ void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture)
 		// u/w,v/w values are between [0,1] and texture is 64x64, hence scale it. [Perspective Correction]
 		int textureIndex = (texture_width * tex_y) + tex_x;
 		// and draw pixel
-		draw_pixel(pixelX, pixelY, texture[textureIndex]);
+		draw_pixel(pixelX, pixelY, texture_buffer[textureIndex]);
 		z_buffer[zIndex] = interpolated_reciprocal_w;
 	}
 }
@@ -418,8 +422,9 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 		x_end -= invSlope1;
 	}
 }
-void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wireframe)
-{
+void draw_triangle_textured(triangle_t triangle, bool wireframe)
+{	
+	
 	triangle = sortVertsByY(triangle);
 	// coordinates of vertices in pixel/screen space
 	int x0, x1, x2, y0, y1, y2;
@@ -449,7 +454,7 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wirefra
 			for (int x = x_start; x < x_end; x++) {
 				// Draw our pixel with a custom color
 				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
-					draw_texel(x, y, triangle, texture);
+					draw_texel(x, y, triangle);
 			}
 		}
 	}
@@ -475,7 +480,7 @@ void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wirefra
 			for (int x = x_start; x < x_end; x++) {
 				/// Draw our pixel with a custom color
 				if (x >= 0 && x < window_width && y >= 0 && y < window_height)
-					draw_texel(x, y, triangle, texture);
+					draw_texel(x, y, triangle);
 			}
 		}
 	}

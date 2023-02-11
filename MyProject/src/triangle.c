@@ -61,7 +61,8 @@ triangle_t sortVertsByY(triangle_t unsorted)
 	.texcoords[1].u = u1, .texcoords[1].v = v1,
 	.texcoords[2].u = u2, .texcoords[2].v = v2,
 	.lightIntensities[0] = li0, .lightIntensities[1] = li1, .lightIntensities[2] = li2,
-	.color = unsorted.color
+	.color = unsorted.color,
+	.texture = unsorted.texture
 	};
 	return sorted;
 }

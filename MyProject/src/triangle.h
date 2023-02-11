@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "vector.h"
 #include "texture.h"
+#include "upng.h"
 
 #define swap(x,y) do{ \
 unsigned char swap_temp[sizeof(x) == sizeof(y) ? (signed)sizeof(x) : -1]; \
@@ -33,6 +34,7 @@ typedef struct {
 	float avg_depth;
 	tex2_t texcoords[3];
 	float lightIntensities[3];
+	upng_t* texture;
 } triangle_t;
 
 triangle_t sortVertsByY(triangle_t unsorted);

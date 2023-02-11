@@ -2,13 +2,7 @@
 
 #include "vector.h"
 #include "triangle.h"
-
-#define N_CUBE_VERTICES 8
-extern vec3_t cube_vertices[N_CUBE_VERTICES];
-
-#define N_CUBE_FACES (6 * 2) // 6 cube faces, 2 triangles per face
-extern face_t cube_faces[N_CUBE_FACES];
-
+#include "upng.h"
 /// <summary>
 /// Define a struct for dynamic size meshes with array of vertices and faces
 /// </summary>
@@ -20,10 +14,18 @@ typedef struct {
 	vec3_t rotation; // how much the mesh should rotate every frame (w.r.t to original rotation of mesh)
 	vec3_t scale; // how much should the mesh be scaled every frame (w.r.t to default scale)
 	vec3_t translate; // how much should the mesh be translated every frame (w.r.t to origin)
+	upng_t* texture; // PNG parsed texture of the mesh object
 	// NOTE: a face is a set of 3 array indices, where each element tells the index of vertex that forms that face
 } mesh_t;
-extern mesh_t mesh;
 
-void load_cube_mesh_data(void);
+// load mesh and png data
+void load_mesh(const char* obj_file_path, const char* png_file_path, vec3_t _scale, vec3_t _translate, vec3_t _rotate);
+
 // load obj models from storage
-void load_obj_file_data(char* filename);
+void load_obj_file_data(char* filename, mesh_t* _mesh);
+void load_png_file_texture(char* filename, mesh_t* _mesh);
+void free_meshes(void);
+
+// getter and setters
+int get_total_num_of_meshes();
+mesh_t* get_mesh(int index);

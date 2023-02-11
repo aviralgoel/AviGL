@@ -2,66 +2,47 @@
 #include "array.h"
 #include <stdio.h>
 
+#define MAX_NUM_OF_MESHES 10
+
 mesh_t mesh = { .vertices = NULL,
 				.texcoords = NULL,
 				.vertex_normals = NULL,
 				.faces = NULL,
 				.rotation = {0,0,0},
 				.scale = {1.0, 1.0, 1.0},
-				.translate = {0, 0, 0}
-};
-// coordinates of vertex in the world space
-// every vertex is currently a vec3
-vec3_t cube_vertices[N_CUBE_VERTICES] = {
-	{.x = -1, .y = -1, .z = -1 }, // 1
-	{.x = -1, .y = 1, .z = -1 }, // 2
-	{.x = 1, .y = 1, .z = -1 }, // 3
-	{.x = 1, .y = -1, .z = -1 }, // 4
-	{.x = 1, .y = 1, .z = 1 }, // 5
-	{.x = 1, .y = -1, .z = 1 }, // 6
-	{.x = -1, .y = 1, .z = 1 }, // 7
-	{.x = -1, .y = -1, .z = 1 }  // 8
+				.translate = {0, 0, 0},
+				.texture = NULL
 };
 
-// index array of triangular mesh faces
-// every face is a 3 float struct
-face_t cube_faces[N_CUBE_FACES] = {
-	// front
-	{.a = 1, .b = 2, .c = 3, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .color = 0xFFFFFFFF },
-	{.a = 1, .b = 3, .c = 4, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .color = 0xFFFFFFFF },
-	// right
-	{.a = 4, .b = 3, .c = 5, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .color = 0xFFFFFFFF },
-	{.a = 4, .b = 5, .c = 6, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .color = 0xFFFFFFFF },
-	// back
-	{.a = 6, .b = 5, .c = 7, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .color = 0xFFFFFFFF },
-	{.a = 6, .b = 7, .c = 8, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .color = 0xFFFFFFFF },
-	// left
-	{.a = 8, .b = 7, .c = 2, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .color = 0xFFFFFFFF },
-	{.a = 8, .b = 2, .c = 1, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .color = 0xFFFFFFFF },
-	// top
-	{.a = 2, .b = 7, .c = 5, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .color = 0xFFFFFFFF },
-	{.a = 2, .b = 5, .c = 3, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .color = 0xFFFFFFFF },
-	// bottom
-	{.a = 6, .b = 8, .c = 1, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .color = 0xFFFFFFFF },
-	{.a = 6, .b = 1, .c = 4, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .color = 0xFFFFFFFF }
-};
 
-void load_cube_mesh_data(void)
-{
-	for (int i = 0; i < N_CUBE_VERTICES; i++)
-	{
-		vec3_t cube_vertex = cube_vertices[i];
-		array_push(mesh.vertices, cube_vertex);
-	}
-	for (int i = 0; i < N_CUBE_FACES; i++)
-	{
-		face_t cube_face = cube_faces[i];
-		array_push(mesh.faces, cube_face);
-	}
+static mesh_t meshes[MAX_NUM_OF_MESHES];
+static int total_num_of_meshes = 0;
+
+void load_mesh(const char* obj_file_path, const char* png_file_path, vec3_t _scale, vec3_t _translate, vec3_t _rotate)
+{	
+	mesh_t _mesh;
+	_mesh.vertices = NULL;
+	_mesh.texcoords = NULL;
+	_mesh.vertex_normals = NULL ;
+	_mesh.faces = NULL;
+	// load mesh data from obj file
+	load_obj_file_data(obj_file_path, &_mesh);
+	// load mesh texture data from png file
+	load_png_file_texture(png_file_path, &_mesh);
+	// scale, rotate and translate mesh
+	_mesh.scale = _scale;
+	_mesh.translate = _translate;
+	_mesh.rotation = _rotate;
+
+	
+	// add to mesh array
+	meshes[total_num_of_meshes] = _mesh;
+	total_num_of_meshes++;
 }
 
-FILE* stream;
-void load_obj_file_data(char* filename) {
+
+void load_obj_file_data(char* filename, mesh_t* _mesh) {
+	FILE* stream;
 	errno_t err;
 
 	// Open for read (will fail if file "crt_fopen_s.c" doesn't exist)
@@ -81,19 +62,19 @@ void load_obj_file_data(char* filename) {
 		if (strncmp(line, "v ", 2) == 0) {
 			vec3_t vertex;
 			sscanf_s(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
-			array_push(mesh.vertices, vertex);
+			array_push(_mesh->vertices, vertex);
 		}
 		// texture info
 		if (strncmp(line, "vt ", 3) == 0) {
 			tex2_t _texurecoord;
 			sscanf_s(line, "vt %f %f", &_texurecoord.u, &_texurecoord.v);
-			array_push(mesh.texcoords, _texurecoord);
+			array_push(_mesh->texcoords, _texurecoord);
 		}
 		// vertex normal info
 		if (strncmp(line, "vn ", 3) == 0) {
 			vec3_t _vn;
 			sscanf_s(line, "vn %f %f %f", &_vn.x, &_vn.y, &_vn.z);
-			array_push(mesh.vertex_normals, _vn);
+			array_push(_mesh->vertex_normals, _vn);
 		}
 		// Face information
 		if (strncmp(line, "f ", 2) == 0) {
@@ -110,14 +91,50 @@ void load_obj_file_data(char* filename) {
 				.a = vertex_indices[0],
 				.b = vertex_indices[1],
 				.c = vertex_indices[2],
-				.a_uv = mesh.texcoords[texture_indices[0] - 1],
-				.b_uv = mesh.texcoords[texture_indices[1] - 1],
-				.c_uv = mesh.texcoords[texture_indices[2] - 1],
-				.a_vn = mesh.vertex_normals[normal_indices[0] - 1],
-				.b_vn = mesh.vertex_normals[normal_indices[0] - 1],
-				.c_vn = mesh.vertex_normals[normal_indices[0] - 1]
+				.a_uv = _mesh->texcoords[texture_indices[0] - 1],
+				.b_uv = _mesh->texcoords[texture_indices[1] - 1],
+				.c_uv = _mesh->texcoords[texture_indices[2] - 1],
+				.a_vn = _mesh->vertex_normals[normal_indices[0] - 1],
+				.b_vn = _mesh->vertex_normals[normal_indices[0] - 1],
+				.c_vn = _mesh->vertex_normals[normal_indices[0] - 1]
 			};
-			array_push(mesh.faces, face);
+			array_push(_mesh->faces, face);
 		}
 	}
+	fclose(stream);
+}
+
+void load_png_file_texture(char* filename, mesh_t* _mesh)
+{
+	upng_t* png_image = upng_new_from_file(filename);
+	if (png_image != NULL) {
+		upng_decode(png_image);
+		if (upng_get_error(png_image) == UPNG_EOK) {
+			_mesh->texture = png_image;
+
+		}
+	}
+}
+
+void free_meshes(void)
+{	
+	for (int i = 0; i < total_num_of_meshes; i++)
+	{
+		array_free(meshes[i].faces);
+		array_free(meshes[i].vertices);
+		array_free(meshes[i].texcoords);
+		array_free(meshes[i].vertex_normals);
+		upng_free(meshes[i].texture);
+	}
+	
+}
+
+int get_total_num_of_meshes()
+{
+	return total_num_of_meshes;
+}
+
+mesh_t* get_mesh(int index)
+{
+	return &meshes[index];
 }

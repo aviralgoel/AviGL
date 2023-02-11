@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <stdio.h>
 #include "triangle.h"'
+#include "upng.h"
 
 // have 30 frames every second
 #define FPS 60
@@ -52,7 +53,7 @@ void draw_grid(void);
 void draw_circle(float radius, uint32_t color);
 void draw_pixel(int x, int y, uint32_t color);
 // function to draw a texture pixel at (x,y) pixel using interpolation
-void draw_texel(int pixelX, int pixelY, triangle_t t, uint32_t* texture);
+void draw_texel(int pixelX, int pixelY, triangle_t t);
 void draw_pixel_shaded(int pixelX, int pixelY, triangle_t t, int shadeMode);
 void draw_rect(int x, int y, int width, int height, uint32_t color);
 void draw_line(int x0, int y0, int x1, int y1, uint32_t color);
@@ -64,7 +65,7 @@ void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t bord
 void fill_flat_bottom(triangle_t flatBottom, uint32_t color);
 void fill_flat_top(triangle_t flatBottom, uint32_t color);
 //void draw_triangle_textured(triangle_t triangle, bool wireframe, uint32_t* texture);
-void draw_triangle_textured(triangle_t triangle, uint32_t* texture, bool wireframe);
+void draw_triangle_textured(triangle_t triangle, bool wireframe);
 void draw_triangle_shaded(triangle_t triangle, uint32_t fillColor, uint32_t borderColor, int shadeMode);
 
 vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p);
