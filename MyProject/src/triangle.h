@@ -38,3 +38,4 @@ typedef struct {
 } triangle_t;
 
 triangle_t sortVertsByY(triangle_t unsorted);
+vec3_t get_triangle_normal(vec4_t vertices[3]);

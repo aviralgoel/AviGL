@@ -47,7 +47,6 @@ void set_render_method(int method);
 void set_cull_method(int method);
 bool is_cull_backface();
 
-
 #pragma region drawing primitives
 void draw_grid(void);
 void draw_circle(float radius, uint32_t color);

@@ -14,16 +14,15 @@ mesh_t mesh = { .vertices = NULL,
 				.texture = NULL
 };
 
-
 static mesh_t meshes[MAX_NUM_OF_MESHES];
 static int total_num_of_meshes = 0;
 
 void load_mesh(const char* obj_file_path, const char* png_file_path, vec3_t _scale, vec3_t _translate, vec3_t _rotate)
-{	
+{
 	mesh_t _mesh;
 	_mesh.vertices = NULL;
 	_mesh.texcoords = NULL;
-	_mesh.vertex_normals = NULL ;
+	_mesh.vertex_normals = NULL;
 	_mesh.faces = NULL;
 	// load mesh data from obj file
 	load_obj_file_data(obj_file_path, &_mesh);
@@ -34,12 +33,10 @@ void load_mesh(const char* obj_file_path, const char* png_file_path, vec3_t _sca
 	_mesh.translate = _translate;
 	_mesh.rotation = _rotate;
 
-	
 	// add to mesh array
 	meshes[total_num_of_meshes] = _mesh;
 	total_num_of_meshes++;
 }
-
 
 void load_obj_file_data(char* filename, mesh_t* _mesh) {
 	FILE* stream;
@@ -111,13 +108,12 @@ void load_png_file_texture(char* filename, mesh_t* _mesh)
 		upng_decode(png_image);
 		if (upng_get_error(png_image) == UPNG_EOK) {
 			_mesh->texture = png_image;
-
 		}
 	}
 }
 
 void free_meshes(void)
-{	
+{
 	for (int i = 0; i < total_num_of_meshes; i++)
 	{
 		array_free(meshes[i].faces);
@@ -126,7 +122,6 @@ void free_meshes(void)
 		array_free(meshes[i].vertex_normals);
 		upng_free(meshes[i].texture);
 	}
-	
 }
 
 int get_total_num_of_meshes()

@@ -66,3 +66,15 @@ triangle_t sortVertsByY(triangle_t unsorted)
 	};
 	return sorted;
 }
+
+vec3_t get_triangle_normal(vec4_t vertices[3])
+{
+	vec3_t BminusA = vec3_subtract(vec3_from_vec4(vertices[1]), vec3_from_vec4(vertices[0]));
+	vec3_t CminusA = vec3_subtract(vec3_from_vec4(vertices[2]), vec3_from_vec4(vertices[0]));
+	vec3_normalize(&CminusA);
+	vec3_normalize(&BminusA);
+	vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
+	// normalize this normal
+	vec3_normalize(&normalToABC);
+	return normalToABC;
+}

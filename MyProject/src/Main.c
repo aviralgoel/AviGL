@@ -42,12 +42,11 @@ int previous_frame_time = 0;
 float delta_time = 0;
 
 void setup(void) {
-
 	// load mesh data from an obj file and load texture data from PNG file
-	load_mesh("./assets/drone.obj", "./assets/drone.png", vec3_new(1, 1, 1), vec3_new(3, 0, 10), vec3_new(0, 0, 0));
-	load_mesh("./assets/efa.obj", "./assets/efa.png", vec3_new(1, 1, 1), vec3_new(-3, 0, 8), vec3_new(0, 0, 0));
-	load_mesh("./assets/f117.obj", "./assets/f117.png", vec3_new(1, 1, 1), vec3_new(3, -2, 8), vec3_new(0, 0, 0));
-
+	load_mesh("./assets/drone.obj", "./assets/drone.png", vec3_new(1, 1, 1), vec3_new(3, 1, 10), vec3_new(0, -M_PI / 2, 0));
+	load_mesh("./assets/efa.obj", "./assets/efa.png", vec3_new(1, 1, 1), vec3_new(-3, -1, 8), vec3_new(0, -M_PI / 2, 0));
+	load_mesh("./assets/f117.obj", "./assets/f117.png", vec3_new(1, 1, 1), vec3_new(3, -1, 8), vec3_new(0, -M_PI / 2, 0));
+	load_mesh("./assets/crab.obj", "./assets/crab.png", vec3_new(1, 1, 1), vec3_new(-3, 2, 8), vec3_new(0, -M_PI / 2, 0));
 
 	// defaut setting of the renderer
 	set_render_method(RENDER_WIREFRAME);
@@ -70,7 +69,7 @@ void setup(void) {
 	init_frustum_planes(fovx, fovy, znear, zfar);
 
 	// intialize lighting
-	init_light(vec3_new( 1,1,-1 ));
+	init_light(vec3_new(1, 1, -1));
 }
 
 // Check for user input
@@ -197,36 +196,32 @@ void update(void) {
 	delta_time = (SDL_GetTicks() - previous_frame_time) / 1000.0;
 	previous_frame_time = SDL_GetTicks();
 
-	// rotation per frame
-	//mesh.rotation.x += 0.2f * delta_time;
-	//mesh.rotation.y += 0.2f * delta_time;
-	//mesh.rotation.z += 0.2f * delta_time;
-
-	// translation per frame
-	//mesh.translate.x += 0.2f * delta_time;
-	//mesh.translate.y += -0.01f;
-	//mesh.translate.z = 5.0f;
-
-	// scale per frame
-	//mesh.scale.x = 2;
-	//mesh.scale.y = 2;
-	//mesh.scale.z = 2;
-
-	// change camera position per frame
-	//camera.position.x += 0.25f * delta_time;
-	//camera.position.y += 0.3f * delta_time;
-
 	// camera up direction
 	vec3_t up_direction = { 0,1,0 };
-	
+
 	vec3_t target = get_camera_lookAt_target();
 	// create a camera lookAt/ world-to-camera view matrix
 	camera_view_matrix = mat4_look_at(get_camera_position(), target, up_direction);
 
-	
 	for (int current_mesh = 0; current_mesh < get_total_num_of_meshes(); current_mesh++)
-	{	
+	{
 		mesh_t* mesh = get_mesh(current_mesh);
+
+		// rotation per frame
+		mesh->rotation.x += 0.05f * delta_time;
+		mesh->rotation.y += 0.2f * delta_time;
+		mesh->rotation.z += 0.05f * delta_time;
+
+		// translation per frame
+		//mesh.translate.x += 0.2f * delta_time;
+		//mesh.translate.y += -0.01f;
+		//mesh.translate.z = 5.0f;
+
+		// scale per frame
+		//mesh.scale.x = 2;
+		//mesh.scale.y = 2;
+		//mesh.scale.z = 2;
+
 		// creating scale, translate, and rotation matrices
 		mat4_t scaleMatrix = mat4_make_scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
 		mat4_t translateMatrix = mat4_make_translate(mesh->translate.x, mesh->translate.y, mesh->translate.z);
@@ -284,13 +279,7 @@ void update(void) {
 			}
 
 			// for backface culling, calculate normal to the triangle face
-			vec3_t BminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[1]), vec3_from_vec4(transformed_vertices[0]));
-			vec3_t CminusA = vec3_subtract(vec3_from_vec4(transformed_vertices[2]), vec3_from_vec4(transformed_vertices[0]));
-			vec3_normalize(&CminusA);
-			vec3_normalize(&BminusA);
-			vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
-			// normalize this normal
-			vec3_normalize(&normalToABC);
+			vec3_t face_normal = get_triangle_normal(transformed_vertices);
 
 			// Back face culling on/off
 			if (is_cull_backface)
@@ -298,13 +287,13 @@ void update(void) {
 				// Back face culling
 				vec3_t origin = { 0,0,0 }; // our camera is at the origin of camera space
 				vec3_t cameraRay = vec3_subtract(origin, vec3_from_vec4(transformed_vertices[0]));
-				float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
+				float camRayDotFaceNormal = vec3_dotProduct(cameraRay, face_normal);
 				if (camRayDotFaceNormal < 0)
 					continue;
 			}
 
 			// Flat Shading, based on the dot product between light and the face normal
-			float lightEffect = normalizeInRange(vec3_dotProduct(normalToABC, get_light_direction()), 1, -1);
+			float lightEffect = normalizeInRange(vec3_dotProduct(face_normal, get_light_direction()), 1, -1);
 			mesh_face.color = GREEN; // RED
 			mesh_face.color = light_apply_intensity(mesh_face.color, lightEffect);
 
@@ -392,9 +381,6 @@ void update(void) {
 		// Painters Algorithsm
 		//quicksort_triangles(triangles_to_render, 0, remainingFaces - 1);
 	}
-
-
-	
 }
 
 void render(void) {
@@ -434,7 +420,6 @@ void render(void) {
 	}
 	//array_free(triangles_to_render);
 	render_color_buffer();
-
 }
 int main(void) {
 	is_running = initialize_window();

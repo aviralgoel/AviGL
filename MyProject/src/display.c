@@ -41,7 +41,7 @@ void set_cull_method(int method)
 
 bool is_cull_backface()
 {
-	return (cull_method==CULL_BACKFACE);
+	return (cull_method == CULL_BACKFACE);
 }
 
 // initialized the window wizard for the renderer
@@ -54,7 +54,7 @@ bool initialize_window(void) {
 	// Set width and height of the SDL window with the max screen resolution
 	SDL_DisplayMode display_mode;
 	SDL_GetCurrentDisplayMode(0, &display_mode);
-	int full_screen_width =  display_mode.w;
+	int full_screen_width = display_mode.w;
 	int full_screen_height = display_mode.h;
 
 	// Create a SDL Window
@@ -93,7 +93,6 @@ bool initialize_window(void) {
 	return true;
 }
 void render_color_buffer(void) {
-	
 	SDL_UpdateTexture(
 		color_buffer_texture,
 		NULL,
@@ -102,7 +101,6 @@ void render_color_buffer(void) {
 	);
 	SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
-
 }
 void clear_color_buffer(uint32_t color) {
 	for (int y = 0; y < window_height; y++) {
@@ -423,8 +421,7 @@ void fill_flat_top(triangle_t triangle, uint32_t color)
 	}
 }
 void draw_triangle_textured(triangle_t triangle, bool wireframe)
-{	
-	
+{
 	triangle = sortVertsByY(triangle);
 	// coordinates of vertices in pixel/screen space
 	int x0, x1, x2, y0, y1, y2;

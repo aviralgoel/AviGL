@@ -42,7 +42,7 @@ vec3_t get_camera_lookAt_target()
 
 	set_camera_direction(mat4_multiply_vec3(camera_rotation, target));
 	target = vec3_add(get_camera_position(), get_camera_direction());
-	
+
 	return target;
 }
 

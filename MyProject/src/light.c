@@ -1,6 +1,5 @@
 #include "light.h"
 
-
 static light_t dir_light;
 
 void init_light(vec3_t direction)
