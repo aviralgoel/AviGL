@@ -17,12 +17,13 @@ Things I've *IMPLEMENTED* so far...
 8. Texture Mapping (PNG Textures) and Baycentric Coordinates
 9. Perspective Correction
 10. Camera View Frustum Clipping 
+11. Loading multiple meshes in a single scene
 
     
 ## Result
 <!---
-//![backface_culling](https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo.gif?raw=true) -->
-<img src="https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo0.gif" width="640" height="320" />
+//![backface_culling](https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo.gif) -->
+<img src="https://github.com/aviralgoel/AviGL/blob/master/MyProject/progress/demo.gif" width="640" height="320" />
 
 ## Motivation
 
