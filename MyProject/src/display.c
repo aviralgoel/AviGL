@@ -173,6 +173,16 @@ void destroy_window(void) {
 	SDL_Quit();
 }
 
+int min_int(int a, int b)
+{
+	return (a < b ? a : b);
+}
+
+int max_int(int a, int b)
+{
+	return (a > b ? a : b);
+}
+
 void draw_triangle(triangle_t triangle, uint32_t color, bool showVertex)
 {
 	draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, color);
@@ -186,30 +196,107 @@ void draw_triangle(triangle_t triangle, uint32_t color, bool showVertex)
 	}
 }
 
-void draw_triangle_filled(triangle_t triangle, uint32_t color)
+
+void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t borderColor)
 {	
-	
-	triangle = sortVertsByY(triangle);
-	// find the coordinates of line that divides the triangle into flat bottom and flat top
+	// find bounding box
 	int x0, x1, x2, y0, y1, y2;
 	x0 = triangle.points[0].x; 	x1 = triangle.points[1].x; 	x2 = triangle.points[2].x;
 	y0 = triangle.points[0].y; 	y1 = triangle.points[1].y; 	y2 = triangle.points[2].y;
-	int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float) (y2 - y0)) + x0;
-	int My = y1;
-	draw_triangle(triangle, color, true);
-	triangle_t flatBottom = {
-	.points[0].x = x0, .points[0].y = y0,
-	.points[1].x = x1, .points[1].y = y1,
-	.points[2].x = Mx, .points[2].y = My};
-	triangle_t flatTop = {
-	.points[0].x = x1, .points[0].y = y1,
-	.points[1].x = x2, .points[1].y = y2,
-	.points[2].x = Mx, .points[2].y = My };
+	
+	int minX = min_int(x0, min_int(x1, x2));
+	int maxX = max_int(x0, max_int(x1, x2));
 
-	fill_flat_bottom(flatBottom, color);
-	fill_flat_top(flatTop, color);
+	int minY = min_int(y0, min_int(y1, y2));
+	int maxY = max_int(y0, max_int(y1, y2));
 
+	draw_line(minX, minY, maxX, minY, YELLOW); // bottom line
+	draw_line(minX, minY, minX, maxY, YELLOW); // left line
+	draw_line(maxX, minY, maxX, maxY, YELLOW); // right line
+	draw_line(minX, maxY, maxX, maxY, YELLOW); // top line
+
+
+	// spits out the triangle in order of y coordinates y0 <= y1 <= y2 
+	triangle = sortVertsByY(triangle);
+	// find the coordinates of line that divides the triangle into flat bottom and flat top
+	//int x0, x1, x2, y0, y1, y2;
+	x0 = triangle.points[0].x; 	y0 = triangle.points[0].y; // A is the top vertex
+	x1 = triangle.points[1].x; 	y1 = triangle.points[1].y; // B is the middle vertex
+	x2 = triangle.points[2].x; 	y2 = triangle.points[2].y; // C is the bottom vertex
+	
+	//// For Edge AB
+	//int deltaX_AB = (x1 - x0);	int deltaY_AB = (y1 - y0);
+	//int AB_coefficient_A = deltaY_AB;	int AB_coefficient_B = -deltaX_AB;
+	//int AB_coefficient_C = (deltaX_AB * y0) - (deltaY_AB * x0);
+
+	//// for edge BC
+	//int deltaX_BC = (x2 - x1);	int deltaY_BC = (y2 - y1);
+	//int BC_coefficient_A = deltaY_BC;	int BC_coefficient_B = -deltaX_BC;
+	//int BC_coefficient_C = (deltaX_BC * y1) - (deltaY_BC * x1);
+
+	//// for edge CA
+	//int deltaX_CA = (x0 - x2);	int deltaY_CA = (y0 - y2);
+	//int CA_coefficient_A = deltaY_CA;	int CA_coefficient_B = -deltaX_CA;
+	//int CA_coefficient_C = (deltaX_CA * y2) - (deltaY_CA * x2);
+
+	//for (int y = minY; y <= maxY; y++)
+	//{
+	//	for (int x = minX; x <= maxX; x++)
+	//	{
+	//		if (
+	//				(
+	//				(((AB_coefficient_A * x) + (AB_coefficient_B * y) + (AB_coefficient_C)) < 0) &&
+	//				(((BC_coefficient_A * x) + (BC_coefficient_B * y) + (BC_coefficient_C)) < 0) &&
+	//				(((CA_coefficient_A * x) + (CA_coefficient_B * y) + (CA_coefficient_C)) < 0)
+	//				) || 
+	//				(
+	//				(((AB_coefficient_A * x) + (AB_coefficient_B * y) + (AB_coefficient_C)) > 0) &&
+	//				(((BC_coefficient_A * x) + (BC_coefficient_B * y) + (BC_coefficient_C)) > 0) &&
+	//				(((CA_coefficient_A * x) + (CA_coefficient_B * y) + (CA_coefficient_C)) > 0)
+	//				)
+	//			)
+
+	//		{
+	//			draw_pixel(x, y, BLUE);
+	//		}
+	//	}
+	//}
+
+	if (y1 == y2)
+	{
+		triangle_t flatBottom = {
+		.points[0].x = x0, .points[0].y = y0,
+		.points[1].x = x1, .points[1].y = y1,
+		.points[2].x = x2, .points[2].y = y2 };
+		 fill_flat_bottom(flatBottom, fillColor);
+	}
+	else if (y0 == y2)
+	{
+		triangle_t flatTop = {
+		.points[0].x = x0, .points[0].y = y0,
+		.points[1].x = x1, .points[1].y = y1,
+		.points[2].x = x2, .points[2].y = y2 };
+	fill_flat_top(flatTop, fillColor);
+	}
+	else
+	{
+		int Mx = ((float)((x2 - x0) * (y1 - y0)) / (float)(y2 - y0)) + x0;
+		int My = y1;
+		draw_triangle(triangle, borderColor, true);
+		triangle_t flatBottom = {
+		.points[0].x = x0, .points[0].y = y0,
+		.points[1].x = x1, .points[1].y = y1,
+		.points[2].x = Mx, .points[2].y = My };
+		triangle_t flatTop = {
+		.points[0].x = x1, .points[0].y = y1,
+		.points[1].x = x2, .points[1].y = y2,
+		.points[2].x = Mx, .points[2].y = My };
+
+		fill_flat_bottom(flatBottom, fillColor);
+		fill_flat_top(flatTop, fillColor);
+	}
 }
+
 
 void fill_flat_bottom(triangle_t triangle, uint32_t color)
 {

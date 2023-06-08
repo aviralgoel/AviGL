@@ -38,6 +38,7 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color);
 void draw_line_BLA(int x0, int y0, int x1, int y1, uint32_t color);
 #pragma region Triangle specific drawing methods
 void draw_triangle(triangle_t t, uint32_t color, bool showVertices);
+void draw_triangle_filled(triangle_t triangle, uint32_t fillColor, uint32_t borderColor);
 void draw_triangle_filled(triangle_t triangle, uint32_t color);
 void fill_flat_bottom(triangle_t flatBottom, uint32_t color);
 void fill_flat_top(triangle_t flatBottom, uint32_t color);
@@ -45,3 +46,5 @@ void fill_flat_top(triangle_t flatBottom, uint32_t color);
 void render_color_buffer(void); 
 void clear_color_buffer(uint32_t color);
 void destroy_window(void);
+int min_int(int a, int b);
+int max_int(int a, int b);

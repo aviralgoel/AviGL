@@ -14,7 +14,7 @@ void free_resources(void);
 // Number of triangles to be rendered = number of faces (since each triangle corresponds to one face)
 triangle_t* triangles_to_render = NULL;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -10 };
+vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 //vec3_t cube_rotation = { .x = 0, .y = 0, .z = 0 };
 
 float fov_factor = 1040;
@@ -70,14 +70,14 @@ void update(void) {
 	int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
 
 	// Only delay execution if we are running too fast
-	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
-		SDL_Delay(time_to_wait);
-	}
+	//if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+	//	SDL_Delay(time_to_wait);
+	//}
 	previous_frame_time = SDL_GetTicks();
 
-	mesh.rotation.x += 0.03;
-	mesh.rotation.y += 0.03;
-	//mesh.rotation.z += 0.01;
+	mesh.rotation.x += 0.01;
+	mesh.rotation.y += 0.01;
+	mesh.rotation.z += 0.01;
 
 	// Loop all triangle faces of our mesh
 	// for a cube there are 6 sides = 6*2 triangular faces
@@ -91,7 +91,7 @@ void update(void) {
 		face_vertices[0] = mesh.vertices[mesh_face.a - 1];
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1];
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1];
-
+		//printf("face %d: %d, %d, %d\n", i, mesh_face.a, mesh_face.b, mesh_face.c);
 		vec3_t transformed_vertices[3];
 
 		// Loop all three vertices of this current face and apply transformations
@@ -101,22 +101,25 @@ void update(void) {
 			// transform
 			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
 			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-			//transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
 			// Translate the vertex away from the camera
-			transformed_vertex.z -= camera_position.z;
+			transformed_vertex.z += 10;
 			transformed_vertices[j] = transformed_vertex;
 		}
 		// Back face culling
+		// Face B<-A and C<-A
 		vec3_t BminusA = vec3_subtract(transformed_vertices[1], transformed_vertices[0]);
 		vec3_t CminusA = vec3_subtract(transformed_vertices[2], transformed_vertices[0]);
 		vec3_normalize(&CminusA);
 		vec3_normalize(&BminusA);
 		vec3_t normalToABC = vec3_crossProduct(BminusA, CminusA);
+		//printf("normalToABC: %f, %f, %f\n", normalToABC.x, normalToABC.y, normalToABC.z);
 		vec3_normalize(&normalToABC);
 		
 		vec3_t cameraRay = vec3_subtract(camera_position, transformed_vertices[0]);
 		float camRayDotFaceNormal = vec3_dotProduct(cameraRay, normalToABC);
+		//printf("camRayDotFaceNormal: %f\n", camRayDotFaceNormal);
 		if (camRayDotFaceNormal < 0)
 			continue;
 	
