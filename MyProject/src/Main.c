@@ -195,6 +195,9 @@ void update(void) {
 	// if this value is too big -> low fps -> transformations will be corase grained
 	delta_time = (SDL_GetTicks() - previous_frame_time) / 1000.0;
 	previous_frame_time = SDL_GetTicks();
+	// 1 frame takes delta_time seconds
+	// 1 second takes (1 / delta_time) frames
+	printf("2%f\n", 1.0 / delta_time);
 
 	// camera up direction
 	vec3_t up_direction = { 0,1,0 };
